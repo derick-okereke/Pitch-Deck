@@ -1,4 +1,4 @@
-"use server";
+import "server-only";
 
 import { createHash } from "node:crypto";
 import { revalidatePath } from "next/cache";
@@ -11,21 +11,8 @@ import {
   founderDraftSchema,
   reviewableFounderDraftSchema,
 } from "@/lib/profile";
+import type { ProfileActionState } from "@/lib/profile-action-state";
 import { createAdminClient } from "@/lib/supabase/admin";
-
-export type ProfileActionState = {
-  status: "idle" | "saved" | "reviewing" | "review_ready" | "conflict" | "error";
-  message: string;
-  draftVersion?: number;
-  startupId?: string;
-  reviewId?: string;
-  fieldErrors?: Record<string, string>;
-};
-
-export const initialProfileActionState: ProfileActionState = {
-  status: "idle",
-  message: "All changes saved",
-};
 
 function expectedVersion(formData: FormData) {
   const value = Number(formData.get("expected_version"));
@@ -36,13 +23,10 @@ function isVersionConflict(message: string | undefined) {
   return message?.includes("DRAFT_VERSION_CONFLICT") ?? false;
 }
 
-async function saveFounderProfileUnsafe(
-  _previousState: ProfileActionState,
-  formData: FormData,
-): Promise<ProfileActionState> {
+export async function saveFounderProfile(formData: FormData): Promise<ProfileActionState> {
   const account = await getCurrentAccount();
   if (!account || account.role !== "founder") {
-    return { status: "error", message: "Sign in with a founder account to save this profile." };
+    return { status: "error", message: "Your session has expired. Sign in again, then return to save the recovered draft." };
   }
 
   const version = expectedVersion(formData);
@@ -69,12 +53,7 @@ async function saveFounderProfileUnsafe(
     }
   }
 
-  let admin;
-  try {
-    admin = createAdminClient();
-  } catch {
-    return { status: "error", message: "Profile storage is not configured in this environment. Your changes remain in this browser." };
-  }
+  const admin = createAdminClient();
   const { data, error } = await admin.rpc("save_founder_draft", {
     p_founder_id: account.id,
     p_expected_version: version,
@@ -84,13 +63,10 @@ async function saveFounderProfileUnsafe(
     if (isVersionConflict(error?.message)) {
       return {
         status: "conflict",
-        message: "A newer draft was saved elsewhere. Copy any unsaved text, then reload before trying again.",
+        message: "A newer draft was saved elsewhere. Your browser copy is safe; reload to compare before trying again.",
       };
     }
-    return {
-      status: "error",
-      message: "The draft could not be saved. Your changes are still in this browser; try again.",
-    };
+    throw new Error("SAVE_FOUNDER_DRAFT_FAILED", { cause: error });
   }
 
   const saved = data[0];
@@ -179,20 +155,6 @@ async function saveFounderProfileUnsafe(
       draftVersion: saved.draft_version,
       startupId: saved.startup_id,
       reviewId: review.review_id,
-    };
-  }
-}
-
-export async function saveFounderProfile(
-  previousState: ProfileActionState,
-  formData: FormData,
-): Promise<ProfileActionState> {
-  try {
-    return await saveFounderProfileUnsafe(previousState, formData);
-  } catch {
-    return {
-      status: "error",
-      message: "The server could not finish saving this draft. Your typed work is still in this browser; try again in a moment.",
     };
   }
 }

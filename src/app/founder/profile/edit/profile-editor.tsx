@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Check, CircleAlert, CircleHelp, Eye, Plus, Save, Send, ShieldCheck, Trash2 } from "lucide-react";
 import type { FounderWorkspace } from "@/lib/founder-profile";
 import { founderSectors, minorToMajor, type FounderDraft } from "@/lib/profile";
-import { initialProfileActionState, saveFounderProfile, type ProfileActionState } from "./actions";
+import { initialProfileActionState, type ProfileActionState } from "@/lib/profile-action-state";
 import { useFormRecovery } from "@/hooks/use-form-recovery";
 
 const sections = [
@@ -75,7 +75,8 @@ function TractionFields({ draft, stage, errors }: { draft: FounderDraft; stage: 
 export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
   const [dirty, setDirty] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
-  const [state, formAction, pending] = useActionState<ProfileActionState, FormData>(saveFounderProfile, initialProfileActionState);
+  const [state, setState] = useState<ProfileActionState>(initialProfileActionState);
+  const [pending, setPending] = useState(false);
   const version = state.draftVersion ?? workspace.draftVersion;
   const [stage, setStage] = useState(workspace.draft.stage);
   const [sector, setSector] = useState(workspace.draft.sector);
@@ -117,6 +118,49 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
   }, [clearRecovery, state.draftVersion]);
 
   const markDirty = () => setDirty(true);
+  const submitProfile = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (pending) return;
+    const form = event.currentTarget;
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const formData = new FormData(form);
+    formData.set("intent", submitter?.value === "review" ? "review" : "save");
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 30_000);
+    setPending(true);
+    setState((current) => ({ ...current, status: "idle", message: "Saving this revision…", fieldErrors: undefined }));
+    try {
+      const response = await fetch("/api/v1/founder/profile", {
+        method: "POST",
+        body: formData,
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      });
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) throw new Error("PROFILE_SAVE_NON_JSON_RESPONSE");
+      const result = await response.json() as ProfileActionState;
+      if (!result || typeof result.message !== "string" || typeof result.status !== "string") {
+        throw new Error("PROFILE_SAVE_INVALID_RESPONSE");
+      }
+      setState((current) => ({
+        ...result,
+        draftVersion: result.draftVersion ?? current.draftVersion,
+        startupId: result.startupId ?? current.startupId,
+      }));
+    } catch {
+      setState((current) => ({
+        ...current,
+        status: "error",
+        message: navigator.onLine
+          ? "The save service did not respond. Your browser copy is safe; wait a moment and try again."
+          : "You appear to be offline. Your browser copy is safe; reconnect and try again.",
+        fieldErrors: undefined,
+      }));
+    } finally {
+      window.clearTimeout(timeout);
+      setPending(false);
+    }
+  };
   const changeStage = (nextStage: FounderDraft["stage"]) => {
     if (nextStage !== stage && dirty && !window.confirm("Changing stage changes which traction evidence is collected. Continue and review this section before saving?")) return;
     setStage(nextStage);
@@ -139,7 +183,7 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
 
       <div className="editor-layout">
         <aside className="editor-nav"><p>Profile sections</p>{sections.map(([id, label], index) => <a href={`#${id}`} key={id}><span>{String(index + 1).padStart(2, "0")}</span>{label}</a>)}<hr /><div><strong>Publication gate</strong><span>Submit fields complete</span><span>Content score must reach 50/90</span></div></aside>
-        <form action={formAction} className="profile-form" onChange={markDirty} ref={formRef}>
+        <form className="profile-form" onChange={markDirty} onSubmit={submitProfile} ref={formRef}>
           <input name="expected_version" type="hidden" value={version} readOnly />
           <fieldset disabled={workspace.loadError || pending}>
             <section id="basics" className="form-section"><div className="form-section-heading"><span>01</span><div><h2>Basics</h2><p>The five fields required for the first private save.</p></div></div><div className="form-grid two-col">
