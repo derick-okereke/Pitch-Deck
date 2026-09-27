@@ -20,7 +20,7 @@ export function SimulatorSetup() {
       <div className="simulator-page-heading">
         <Link className="back-link" href="/founder"><ArrowLeft size={15} /> Founder overview</Link>
         <div className="simulator-heading-grid">
-          <div><h1>Prepare the room before you pitch.</h1><p>A focused three-minute practice with one follow-up question. Check your microphone, understand what is recorded, then begin when you are ready.</p></div>
+          <div><h1>Prepare the room before you pitch.</h1><p>A focused three-minute practice with two follow-up questions from two different panel members. Check your microphone, understand what is recorded, then begin when you are ready.</p></div>
           <div className="session-allowance"><strong>2</strong><span>of 3 free sessions remain</span><small>Learning-only · public score unchanged</small></div>
         </div>
       </div>
@@ -56,7 +56,7 @@ export function SimulatorSetup() {
           <div className="panel-heading"><h2>What happens</h2><p>The session keeps one job visible at a time.</p></div>
           <ol className="practice-steps">
             <li><span>01</span><div><strong>Deliver your pitch</strong><p>Aim for three minutes. The hard stop is five.</p></div></li>
-            <li><span>02</span><div><strong>Answer one question</strong><p>One persona probes something you said or left unclear.</p></div></li>
+            <li><span>02</span><div><strong>Answer two questions</strong><p>Two different personas each probe something you said or left unclear.</p></div></li>
             <li><span>03</span><div><strong>Study the evidence</strong><p>Review your transcript, pace, detected fillers, and three perspectives.</p></div></li>
           </ol>
           <div className="persona-preview-list">

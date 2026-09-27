@@ -17,7 +17,7 @@ const steps = [
   {
     number: "04",
     title: "Connect with real investors",
-    body: "Once you’re verified, request warm introductions and continue the conversation privately.",
+    body: "Publish a reviewed profile so investors can request an introduction. Founders can always reply for free.",
   },
 ];
 

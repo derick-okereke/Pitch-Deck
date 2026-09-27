@@ -49,14 +49,14 @@ export function SimulatorSetupLive({ activeSession, draftVersion, remainingFree,
       <div className="simulator-page-heading">
         <Link className="back-link" href="/founder"><ArrowLeft size={15} /> Founder overview</Link>
         <div className="simulator-heading-grid">
-          <div><h1>Prepare the room before you pitch.</h1><p>A focused practice with one generated follow-up question. Check your microphone, understand how the recording is processed, then begin when you are ready.</p></div>
+          <div><h1>Prepare the room before you pitch.</h1><p>A focused practice with two follow-up questions from two different panel members. Check your microphone, understand how the recording is processed, then begin when you are ready.</p></div>
           <div className="session-allowance"><strong>{remainingFree}</strong><span>free learning session{remainingFree === 1 ? "" : "s"} available</span><small>Lifetime allowance · reserved only after the panel is ready</small></div>
         </div>
       </div>
 
       <section className="setup-impact" aria-label="Practice session processing">
         <ShieldCheck size={20} />
-        <div><strong>Provider-connected practice</strong><p>Your profile snapshot and session state persist across refresh. Audio storage and scored feedback connect in the next Phase 3 slice.</p></div>
+        <div><strong>Provider-connected practice</strong><p>Your profile snapshot, recordings, transcripts, session state, and scored report persist across refresh.</p></div>
         <span>Private session</span>
       </section>
 
@@ -76,11 +76,11 @@ export function SimulatorSetupLive({ activeSession, draftVersion, remainingFree,
 
           <label className="recording-consent">
             <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
-            <span><strong>I consent to this recording being transcribed.</strong><small>The audio is sent to Groq to produce a private transcript and follow-up question. Generated question text is sent to ElevenLabs only when you request voice playback.</small></span>
+            <span><strong>I consent to this recording being transcribed.</strong><small>The audio is sent to Groq to produce a private transcript and two follow-up questions. Generated question text is sent to ElevenLabs only when you request voice playback.</small></span>
           </label>
 
           <div className="setup-actions">
-            <div><Headphones size={17} /><span>Headphones recommended for the spoken question.</span></div>
+            <div><Headphones size={17} /><span>Headphones recommended for the spoken questions.</span></div>
             {activeSession ? null : <button className="button button-dark" type="button" disabled={!ready || starting} onClick={() => void enterSession()}>{starting ? "Preparing your panel…" : ready ? <>Enter the pitch room <ArrowRight size={16} /></> : remainingFree === 0 ? "Free sessions used" : "Complete readiness first"}</button>}
           </div>
         </section>
@@ -89,8 +89,8 @@ export function SimulatorSetupLive({ activeSession, draftVersion, remainingFree,
           <div className="panel-heading"><h2>What happens</h2><p>The session keeps one job visible at a time.</p></div>
           <ol className="practice-steps">
             <li><span>01</span><div><strong>Deliver your pitch</strong><p>Aim for three minutes. The hard stop is five.</p></div></li>
-            <li><span>02</span><div><strong>Answer one generated question</strong><p>Groq selects one fictional persona to probe your transcript.</p></div></li>
-            <li><span>03</span><div><strong>Review the result</strong><p>Your answer is transcribed; structured scoring and durable reports are the next Phase 3 slice.</p></div></li>
+            <li><span>02</span><div><strong>Answer two generated questions</strong><p>Two different fictional personas each probe something you said or left unclear.</p></div></li>
+            <li><span>03</span><div><strong>Review the result</strong><p>Both answers are transcribed, then the report ties every score and next action to what you said.</p></div></li>
           </ol>
           <div className="persona-preview-list">
             <p>Example fictional panel</p>

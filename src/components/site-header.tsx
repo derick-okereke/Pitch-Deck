@@ -4,7 +4,10 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
-export function SiteHeader() {
+export function SiteHeader({ workspaceHref, workspaceLabel = "Open workspace" }: {
+  workspaceHref?: string | null;
+  workspaceLabel?: string;
+}) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -19,8 +22,10 @@ export function SiteHeader() {
           <Link href="/discover">For investors</Link>
         </nav>
         <div className="desktop-actions">
-          <Link className="text-link" href="/auth/sign-in">Sign in</Link>
-          <Link className="button button-dark button-small" href="/auth/sign-up">Create account</Link>
+          {workspaceHref ? <Link className="button button-dark button-small" href={workspaceHref}>{workspaceLabel}</Link> : <>
+            <Link className="text-link" href="/auth/sign-up">Create account</Link>
+            <Link className="button button-dark button-small" href="/auth/sign-in">Sign in</Link>
+          </>}
         </div>
         <button
           type="button"
@@ -38,8 +43,10 @@ export function SiteHeader() {
           <Link onClick={() => setOpen(false)} href="/#how-it-works">How it works</Link>
           <Link onClick={() => setOpen(false)} href="/#for-founders">For founders</Link>
           <Link onClick={() => setOpen(false)} href="/discover">For investors</Link>
-          <Link onClick={() => setOpen(false)} href="/auth/sign-in">Sign in</Link>
-          <Link onClick={() => setOpen(false)} className="button button-dark" href="/auth/sign-up">Create account</Link>
+          {workspaceHref ? <Link onClick={() => setOpen(false)} className="button button-dark" href={workspaceHref}>{workspaceLabel}</Link> : <>
+            <Link onClick={() => setOpen(false)} href="/auth/sign-up">Create account</Link>
+            <Link onClick={() => setOpen(false)} className="button button-dark" href="/auth/sign-in">Sign in</Link>
+          </>}
         </nav>
       )}
     </header>

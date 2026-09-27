@@ -6,13 +6,23 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { StartupCard } from "@/components/startup-card";
 import { startups } from "@/data/startups";
+import { accountHome, getCurrentAccount } from "@/lib/account";
 
-export default function Home() {
+export default async function Home() {
+  const account = await getCurrentAccount();
+  const workspaceHref = account
+    ? account.organizationName ? accountHome(account) : "/onboarding"
+    : null;
+  const practiceHref = account
+    ? account.role === "founder" && account.organizationName ? "/simulator/new" : workspaceHref ?? "/onboarding"
+    : "/auth/sign-in?next=/simulator/new";
+  const workspaceLabel = account?.role === "investor" ? "Investor workspace" : "Founder dashboard";
+
   return (
     <div className="page-canvas home-page">
       <div className="page-shell">
         <section className="hero-panel">
-          <SiteHeader />
+          <SiteHeader workspaceHref={workspaceHref} workspaceLabel={workspaceLabel} />
           <div className="hero-grid">
             <div className="hero-copy">
               <p className="eyebrow"><span aria-hidden="true" /> Practice meets discovery</p>
@@ -25,7 +35,7 @@ export default function Home() {
                     <path className="role-path-route" d="M2 7 C70 2 112 2 132 20 C141 28 142 35 142 44" />
                     <path className="role-path-tip" d="M137 38 L142 44 L147 38" />
                   </svg>
-                  <Link className="button button-dark" href="/auth/sign-up?role=founder">Practise my pitch <ArrowRight size={17} /></Link>
+                  <Link className="button button-dark" href={practiceHref}>Practise my pitch <ArrowRight size={17} /></Link>
                 </div>
                 <div className="role-path role-path-investor">
                   <span className="role-path-label">For investors</span>
@@ -62,13 +72,13 @@ export default function Home() {
           <div className="section-copy">
             <p className="eyebrow">Live pressure testing</p>
             <h2>Practise for the questions that matter.</h2>
-            <p>Enter a focused boardroom with three fictional investor personas, pitch aloud, answer one follow-up, and leave with evidence instead of vague encouragement.</p>
+            <p>Enter a focused boardroom with three fictional investor personas, pitch aloud, answer two follow-up questions from different panel members, and leave with evidence instead of vague encouragement.</p>
             <ul className="check-list">
               <li><CircleCheck size={18} /> Questions tied to what you actually said</li>
               <li><CircleCheck size={18} /> Pacing and filler metrics after recording</li>
               <li><CircleCheck size={18} /> Specific next actions from each perspective</li>
             </ul>
-            <Link className="inline-link" href="/auth/sign-up?role=founder">Set up a practice session <ArrowRight size={16} /></Link>
+            <Link className="inline-link" href={practiceHref}>Set up a practice session <ArrowRight size={16} /></Link>
           </div>
           <div className="room-preview" aria-label="Illustrative AI pitch room preview">
             <div className="room-bar"><span>AI pitch room</span><span className="live-status"><i /> Ready</span></div>
@@ -83,7 +93,7 @@ export default function Home() {
             <div className="waveform" aria-hidden="true">
               {Array.from({ length: 29 }, (_, index) => <i key={index} style={{ height: `${12 + ((index * 17) % 40)}px` }} />)}
             </div>
-            <div className="room-metrics"><span><small>Pitch timer</small>02:18</span><span><small>Current state</small>Listening</span><span><small>Question</small>1 of 1</span></div>
+            <div className="room-metrics"><span><small>Pitch timer</small>02:18</span><span><small>Current state</small>Listening</span><span><small>Question</small>1 of 2</span></div>
             <p className="preview-label">Illustrative interface · No microphone is active</p>
           </div>
         </section>
@@ -100,7 +110,7 @@ export default function Home() {
           <p className="eyebrow">Choose your side of the table</p>
           <h2>Your next useful conversation<br />starts with better signal.</h2>
           <div className="hero-actions">
-            <Link className="button button-dark" href="/auth/sign-up?role=founder">I’m a founder <ArrowRight size={17} /></Link>
+            <Link className="button button-dark" href={practiceHref}>{account?.role === "founder" ? "Continue practising" : "I’m a founder"} <ArrowRight size={17} /></Link>
             <Link className="button button-light" href="/discover">I’m an investor <ArrowRight size={17} /></Link>
           </div>
         </section>

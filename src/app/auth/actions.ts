@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { accountHome } from "@/lib/account";
 import { accountPasswordSchema } from "@/lib/auth-validation";
+import { postAuthDestination, safeAuthNext } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthFormState = {
@@ -39,6 +40,7 @@ function errors(error: z.ZodError): AuthFormState {
 }
 
 export async function signUp(_state: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const next = safeAuthNext(formData.get("next"));
   const parsed = signUpSchema.safeParse({
     displayName: formData.get("displayName"),
     email: formData.get("email"),
@@ -53,16 +55,19 @@ export async function signUp(_state: AuthFormState, formData: FormData): Promise
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      emailRedirectTo: `${baseUrl(headerStore)}/auth/callback`,
+      emailRedirectTo: `${baseUrl(headerStore)}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
       data: { display_name: parsed.data.displayName, role: parsed.data.role },
     },
   });
 
   if (signUpError) return { message: "We could not create that account. Check your details or try signing in." };
-  redirect(`/auth/check-email?email=${encodeURIComponent(parsed.data.email)}`);
+  const checkEmailQuery = new URLSearchParams({ email: parsed.data.email });
+  if (next) checkEmailQuery.set("next", next);
+  redirect(`/auth/check-email?${checkEmailQuery.toString()}`);
 }
 
 export async function signIn(_state: AuthFormState, formData: FormData): Promise<AuthFormState> {
+  const next = safeAuthNext(formData.get("next"));
   const parsed = signInSchema.safeParse({ email: formData.get("email"), password: formData.get("password") });
   if (!parsed.success) return errors(parsed.error);
 
@@ -76,7 +81,7 @@ export async function signIn(_state: AuthFormState, formData: FormData): Promise
     .eq("id", data.user.id)
     .maybeSingle();
   if (!account) return { message: "Your account workspace is still being prepared. Try again shortly." };
-  redirect(accountHome({ role: account.role, organizationName: account.organization_name }));
+  redirect(postAuthDestination({ role: account.role, organizationName: account.organization_name }, next));
 }
 
 export async function requestPasswordReset(_state: AuthFormState, formData: FormData): Promise<AuthFormState> {

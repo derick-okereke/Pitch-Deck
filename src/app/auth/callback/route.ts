@@ -1,11 +1,7 @@
 import { NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { accountHome } from "@/lib/account";
+import { postAuthDestination, safeAuthNext } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
-
-function safeNext(value: string | null) {
-  return value?.startsWith("/") && !value.startsWith("//") ? value : null;
-}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -19,15 +15,14 @@ export async function GET(request: Request) {
       : await supabase.auth.verifyOtp({ token_hash: tokenHash!, type: type as EmailOtpType });
     const { data, error } = result;
     if (!error && data.user) {
-      const requested = safeNext(url.searchParams.get("next"));
-      if (requested) return NextResponse.redirect(new URL(requested, url.origin));
+      const requested = safeAuthNext(url.searchParams.get("next"));
       const { data: account } = await supabase
         .from("accounts")
         .select("role, organization_name")
         .eq("id", data.user.id)
         .maybeSingle();
       const destination = account
-        ? accountHome({ role: account.role, organizationName: account.organization_name })
+        ? postAuthDestination({ role: account.role, organizationName: account.organization_name }, requested)
         : "/founder";
       return NextResponse.redirect(new URL(destination, url.origin));
     }
