@@ -5,6 +5,7 @@ const allowedDestinations = new Set([
   "/founder",
   "/founder/profile/edit",
   "/founder/profile/preview",
+  "/investor/profile",
   "/onboarding",
   "/simulator/new",
 ]);
@@ -21,7 +22,7 @@ export function postAuthDestination(
   if (!account.organizationName) return "/onboarding";
   const destination = safeAuthNext(requested);
   if (account.role === "investor") {
-    return destination === "/discover" ? destination : "/discover";
+    return destination === "/discover" || destination === "/investor/profile" ? destination : "/discover";
   }
   return destination && destination !== "/discover" && destination !== "/onboarding"
     ? destination

@@ -16,6 +16,9 @@ export default async function Home() {
   const practiceHref = account
     ? account.role === "founder" && account.organizationName ? "/simulator/new" : workspaceHref ?? "/onboarding"
     : "/auth/sign-in?next=/simulator/new";
+  const investorHref = account
+    ? account.role === "investor" && account.organizationName ? "/discover" : workspaceHref ?? "/onboarding"
+    : "/auth/sign-in?next=/discover";
   const workspaceLabel = account?.role === "investor" ? "Investor workspace" : "Founder dashboard";
 
   return (
@@ -43,7 +46,7 @@ export default async function Home() {
                     <path className="role-path-route" d="M2 7 C70 2 112 2 132 20 C141 28 142 35 142 44" />
                     <path className="role-path-tip" d="M137 38 L142 44 L147 38" />
                   </svg>
-                  <Link className="button button-light" href="/discover">Discover startups <Compass size={17} /></Link>
+                  <Link className="button button-light" href={investorHref}>Discover startups <Compass size={17} /></Link>
                 </div>
               </div>
               <p className="hero-note">Built for founders from idea to growth · Free practice available</p>
@@ -101,7 +104,7 @@ export default async function Home() {
         <section className="content-panel discovery-preview" id="for-investors">
           <div className="section-heading split-heading">
             <div><p className="eyebrow">Substantiated deal flow</p><h2>Look past the polished idea.</h2></div>
-            <div><p>Filter by sector, stage, geography, funding ask, and a readiness signal whose components are visible.</p><Link className="inline-link" href="/discover">Explore discovery <ArrowRight size={16} /></Link></div>
+            <div><p>Filter by sector, stage, geography, funding ask, and a readiness signal whose components are visible.</p><Link className="inline-link" href={investorHref}>Explore discovery <ArrowRight size={16} /></Link></div>
           </div>
           <div className="preview-card-wrap"><StartupCard startup={startups[0]} /></div>
         </section>
@@ -111,7 +114,7 @@ export default async function Home() {
           <h2>Your next useful conversation<br />starts with better signal.</h2>
           <div className="hero-actions">
             <Link className="button button-dark" href={practiceHref}>{account?.role === "founder" ? "Continue practising" : "I’m a founder"} <ArrowRight size={17} /></Link>
-            <Link className="button button-light" href="/discover">I’m an investor <ArrowRight size={17} /></Link>
+            <Link className="button button-light" href={investorHref}>I’m an investor <ArrowRight size={17} /></Link>
           </div>
         </section>
         <SiteFooter />

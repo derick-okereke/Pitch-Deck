@@ -11,7 +11,7 @@
     "test:auth": "node --test --experimental-strip-types tests/auth-validation.test.ts tests/auth-redirect.test.ts",
     "test:device-tier": "node --test --experimental-strip-types tests/device-tier.test.ts",
     "test:phase3": "node --test --experimental-strip-types tests/device-tier.test.ts tests/transcript-metrics.test.ts tests/simulator.test.ts",
-    "test:phase4": "node --test --experimental-strip-types tests/readiness.test.ts"
+    "test:phase4": "node --test --experimental-strip-types tests/readiness.test.ts tests/investor-profile.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/instrument-sans": "^5.3.0",

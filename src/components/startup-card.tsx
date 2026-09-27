@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { ArrowUpRight, MapPin } from "lucide-react";
 import type { Startup } from "@/data/startups";
+import type { DiscoveryCard } from "@/lib/marketplace";
 
-export function StartupCard({ startup }: { startup: Startup }) {
+export function StartupCard({ startup }: { startup: Startup | DiscoveryCard }) {
+  const href = "slug" in startup ? `/startups/${startup.slug}` : `/startups/${startup.id}`;
+  const isDemo = "isDemo" in startup ? startup.isDemo : true;
   return (
     <article className="startup-card">
       <div className="startup-card-topline">
-        <span>Illustrative demo</span>
+        <span>{isDemo ? "Illustrative demo" : "Published profile"}</span>
         <span className={startup.verified ? "verified-badge" : "reviewed-badge"}>
           <i aria-hidden="true" /> {startup.verified ? "Verified pitch-ready" : "Profile reviewed"}
         </span>
@@ -25,7 +28,7 @@ export function StartupCard({ startup }: { startup: Startup }) {
       <div className="startup-card-footer">
         <span><MapPin size={14} aria-hidden="true" />{startup.location}</span>
         <span>Raising {startup.ask}</span>
-        <Link href={`/startups/${startup.slug}`}>View profile <ArrowUpRight size={15} aria-hidden="true" /></Link>
+        <Link href={href}>View profile <ArrowUpRight size={15} aria-hidden="true" /></Link>
       </div>
     </article>
   );

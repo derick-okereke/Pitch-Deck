@@ -23,6 +23,29 @@ export type Database = {
         };
         Relationships: [];
       };
+      investor_profiles: {
+        Row: {
+          user_id: string;
+          full_name: string;
+          investor_type: "angel" | "vc-firm" | "corporate-venture" | "accelerator";
+          firm_name: string | null;
+          professional_title: string | null;
+          bio: string | null;
+          sectors: string[];
+          stages: string[];
+          countries: string[];
+          check_currency: "NGN" | "USD";
+          check_min_minor: number;
+          check_max_minor: number;
+          linkedin_url: string | null;
+          domain_signal: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["investor_profiles"]["Row"], "created_at" | "updated_at" | "domain_signal"> & { domain_signal?: boolean };
+        Update: Partial<Omit<Database["public"]["Tables"]["investor_profiles"]["Row"], "user_id" | "created_at" | "updated_at" | "domain_signal">>;
+        Relationships: [];
+      };
       startups: {
         Row: {
           id: string;
