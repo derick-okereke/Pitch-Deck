@@ -94,6 +94,12 @@ export async function saveFounderProfile(formData: FormData): Promise<ProfileAct
   });
 
   if (reviewError || !reviewData?.[0]) {
+    console.error("Profile review start failed", {
+      code: reviewError?.code,
+      message: reviewError?.message,
+      startupId: saved.startup_id,
+      draftVersion: saved.draft_version,
+    });
     return {
       status: "error",
       message: "Your draft was saved, but review could not start. Try submitting it again.",
@@ -142,7 +148,8 @@ export async function saveFounderProfile(formData: FormData): Promise<ProfileAct
       startupId: saved.startup_id,
       reviewId: review.review_id,
     };
-  } catch {
+  } catch (error) {
+    console.error("Profile review provider failed", { reviewId: review.review_id, error });
     try {
       await admin.rpc("fail_profile_review", { p_review_id: review.review_id, p_error_code: "PROVIDER_UNAVAILABLE" });
     } catch {

@@ -38,9 +38,9 @@ function capture(form: HTMLFormElement) {
   return values;
 }
 
-function restore(form: HTMLFormElement, values: Record<string, string>) {
+function restore(form: HTMLFormElement, values: Record<string, string>, skipNames?: Set<string>) {
   for (const element of Array.from(form.elements)) {
-    if (!eligible(element) || !(element.name in values)) continue;
+    if (!eligible(element) || !(element.name in values) || skipNames?.has(element.name)) continue;
     const value = values[element.name];
     if (element instanceof HTMLInputElement && element.type === "radio") element.checked = element.value === value;
     else if (element instanceof HTMLInputElement && element.type === "checkbox") element.checked = value !== "";
@@ -76,16 +76,18 @@ export function useFormRecovery({ formRef, storageKey, onRecover }: RecoveryOpti
     } catch { /* A corrupt or unavailable local store should never block the form. */ }
 
     const timers: number[] = [];
+    const touchedNames = new Set<string>();
     if (saved) {
       callbackRef.current?.(saved.values);
-      const apply = () => restore(form, saved!.values);
-      apply();
+      restore(form, saved.values);
+      const apply = () => restore(form, saved!.values, touchedNames);
       timers.push(window.setTimeout(apply, 60), window.setTimeout(apply, 240));
       setRecoveredAt(saved.updatedAt);
     }
 
     let saveTimer: number | null = null;
-    const save = () => {
+    const save = (event: Event) => {
+      if (event.target instanceof Element && eligible(event.target)) touchedNames.add(event.target.name);
       if (saveTimer !== null) window.clearTimeout(saveTimer);
       saveTimer = window.setTimeout(() => {
         try {

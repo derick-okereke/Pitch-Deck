@@ -96,7 +96,9 @@ export const profileReviewJsonSchema = {
 
 function evidenceFields(profile: FounderDraft) {
   const fields = new Map<string, string>();
+  const knownFields = new Set<string>();
   const visit = (value: unknown, path: string) => {
+    if (path) knownFields.add(path);
     if (typeof value === "string" || typeof value === "number") {
       if (String(value).trim()) fields.set(path, String(value).trim());
       return;
@@ -110,7 +112,11 @@ function evidenceFields(profile: FounderDraft) {
     }
   };
   visit(profile, "");
-  return fields;
+  return { fields, knownFields };
+}
+
+function canonicalFieldPath(path: string) {
+  return path.replace(/\[(\d+)\]/gu, ".$1");
 }
 
 export function validateAndScoreProfileReview(raw: unknown, profile: FounderDraft) {
@@ -120,8 +126,13 @@ export function validateAndScoreProfileReview(raw: unknown, profile: FounderDraf
     throw new Error("The review did not contain exactly one rating for each category.");
   }
 
-  const fields = evidenceFields(profile);
-  for (const category of output.categories) {
+  const { fields, knownFields } = evidenceFields(profile);
+  const categories = output.categories.map((category) => ({
+    ...category,
+    evidence: category.evidence.map((item) => ({ ...item, source_field: canonicalFieldPath(item.source_field) })),
+  }));
+  const flags = output.flags.map((flag) => ({ ...flag, field: canonicalFieldPath(flag.field) }));
+  for (const category of categories) {
     if (category.rating > 0 && category.evidence.length === 0) {
       throw new Error(`The ${category.key} rating has no supporting evidence.`);
     }
@@ -130,13 +141,13 @@ export function validateAndScoreProfileReview(raw: unknown, profile: FounderDraf
       if (!source || !source.includes(evidence.quote)) throw new Error("The review cited evidence that is not present in the submitted profile.");
     }
   }
-  for (const flag of output.flags) {
-    if (!fields.has(flag.field) && !flag.field.startsWith("team.")) throw new Error("The review flagged an unknown profile field.");
+  for (const flag of flags) {
+    if (!knownFields.has(flag.field)) throw new Error("The review flagged an unknown profile field.");
   }
 
-  const contentPoints = output.categories.reduce(
+  const contentPoints = categories.reduce(
     (total, category) => total + profileCategoryWeights[category.key] * category.rating / 4,
     0,
   );
-  return { ...output, contentPoints };
+  return { ...output, categories, flags, contentPoints };
 }

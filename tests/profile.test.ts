@@ -135,3 +135,24 @@ test("rejects duplicate category keys even when the schema shape is valid", () =
   review.categories[5].key = "clarity";
   assert.throws(() => validateAndScoreProfileReview(review, completeProfile), /exactly one rating/);
 });
+
+test("normalizes provider array paths before grounding team evidence", () => {
+  const review = validReview();
+  review.categories[3].evidence[0].source_field = "team[0].relevant_experience" as never;
+  const result = validateAndScoreProfileReview(review, completeProfile);
+  assert.equal(result.categories[3].evidence[0].source_field, "team.0.relevant_experience");
+});
+
+test("accepts a provider flag that names a profile section", () => {
+  const review = validReview();
+  review.flags.push({ field: "team", code: "missing_evidence", message: "Only one founder is described in the submitted team section." } as never);
+  const result = validateAndScoreProfileReview(review, completeProfile);
+  assert.equal(result.flags[0].field, "team");
+});
+
+test("accepts a provider flag for an empty known field", () => {
+  const review = validReview();
+  review.flags.push({ field: "market.sources", code: "missing_evidence", message: "No source citations were submitted for the market figures." } as never);
+  const result = validateAndScoreProfileReview(review, completeProfile);
+  assert.equal(result.flags[0].field, "market.sources");
+});

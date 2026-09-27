@@ -75,8 +75,10 @@ function TractionFields({ draft, stage, errors }: { draft: FounderDraft; stage: 
 export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
   const [dirty, setDirty] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const feedbackRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<ProfileActionState>(initialProfileActionState);
   const [pending, setPending] = useState(false);
+  const [pendingIntent, setPendingIntent] = useState<"save" | "review" | null>(null);
   const version = state.draftVersion ?? workspace.draftVersion;
   const [stage, setStage] = useState(workspace.draft.stage);
   const [sector, setSector] = useState(workspace.draft.sector);
@@ -117,6 +119,18 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
     return () => window.clearTimeout(timer);
   }, [clearRecovery, state.draftVersion]);
 
+  useEffect(() => {
+    if (pending || !["error", "conflict", "review_ready"].includes(state.status)) return;
+    const timer = window.setTimeout(() => {
+      feedbackRef.current?.focus({ preventScroll: true });
+      feedbackRef.current?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "nearest",
+      });
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [pending, state.status]);
+
   const markDirty = () => setDirty(true);
   const submitProfile = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -124,11 +138,18 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
     const form = event.currentTarget;
     const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
     const formData = new FormData(form);
-    formData.set("intent", submitter?.value === "review" ? "review" : "save");
+    const intent = submitter?.value === "review" ? "review" : "save";
+    formData.set("intent", intent);
     const controller = new AbortController();
-    const timeout = window.setTimeout(() => controller.abort(), 30_000);
+    const timeout = window.setTimeout(() => controller.abort(), intent === "review" ? 65_000 : 30_000);
     setPending(true);
-    setState((current) => ({ ...current, status: "idle", message: "Saving this revision…", fieldErrors: undefined }));
+    setPendingIntent(intent);
+    setState((current) => ({
+      ...current,
+      status: "idle",
+      message: intent === "review" ? "Reviewing this revision…" : "Saving this revision…",
+      fieldErrors: undefined,
+    }));
     try {
       const response = await fetch("/api/v1/founder/profile", {
         method: "POST",
@@ -159,6 +180,7 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
     } finally {
       window.clearTimeout(timeout);
       setPending(false);
+      setPendingIntent(null);
     }
   };
   const changeStage = (nextStage: FounderDraft["stage"]) => {
@@ -167,19 +189,19 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
     markDirty();
   };
   const errors = state.fieldErrors;
+  const draftConfirmed = !dirty && state.draftVersion !== undefined;
+  const hasFieldErrors = Boolean(errors && Object.keys(errors).length);
+  const hasSubmissionFeedback = state.status === "conflict" || state.status === "error" || state.status === "review_ready" || hasFieldErrors;
 
   return (
     <main className="editor-page">
       <section className="editor-topbar">
         <div><p className="editor-context">Founder profile · Draft version {version || "new"}</p><h1>Make the case in your own words.</h1><p>Save a private draft at any time. Investors only see a reviewed revision after it is published.</p></div>
-        <div className="editor-top-actions"><span className={dirty ? "save-state dirty" : "save-state"}>{dirty ? "● Unsaved changes" : <><Check size={13} /> {state.message}</>}</span><Link className="button button-light" href="/founder/profile/preview"><Eye size={16} /> Preview</Link></div>
+        <div className="editor-top-actions"><span className={dirty ? "save-state dirty" : "save-state"}>{dirty ? "● Unsaved changes" : <><Check size={13} /> {draftConfirmed ? "Draft saved" : "All changes saved"}</>}</span><Link className="button button-light" href="/founder/profile/preview"><Eye size={16} /> Preview</Link></div>
       </section>
 
       {workspace.loadError ? <div className="persistent-error editor-system-state" role="alert"><CircleAlert size={18} /><div><strong>The saved draft could not be loaded.</strong><p>Reload before entering information. If this is a new environment, apply the latest Supabase migration first.</p></div></div> : null}
       {recoveredAt ? <div className="recovery-banner" role="status"><Check size={17} /><div><strong>Unsaved work recovered from this browser.</strong><p>Review it, then save when you are ready. Passwords and uploaded files are never stored this way.</p></div><button type="button" onClick={clearRecovery}>Discard recovery copy</button></div> : null}
-      {state.status === "conflict" || state.status === "error" ? <div className="persistent-error editor-system-state" role="alert"><CircleAlert size={18} /><div><strong>{state.status === "conflict" ? "This draft changed elsewhere." : "The profile needs attention."}</strong><p>{state.message}</p></div></div> : null}
-      {errors && Object.keys(errors).length ? <div className="validation-summary" role="alert"><strong>Review {Object.keys(errors).length} field{Object.keys(errors).length === 1 ? "" : "s"} before continuing.</strong><ul>{Object.values(errors).map((error) => <li key={error}>{error}</li>)}</ul></div> : null}
-      {(state.status === "reviewing" || state.status === "review_ready") && state.reviewId ? <div className="submission-banner" role="status"><ShieldCheck size={19} /><div><strong>{state.status === "review_ready" ? "Review complete." : "Revision secured for review."}</strong><p>{state.message}</p></div><Link href={`/founder/reviews/${state.reviewId}`}>{state.status === "review_ready" ? "Open review" : "Open review status"}</Link></div> : null}
 
       <div className="editor-layout">
         <aside className="editor-nav"><p>Profile sections</p>{sections.map(([id, label], index) => <a href={`#${id}`} key={id}><span>{String(index + 1).padStart(2, "0")}</span>{label}</a>)}<hr /><div><strong>Publication gate</strong><span>Submit fields complete</span><span>Content score must reach 50/90</span></div></aside>
@@ -230,7 +252,13 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
               <label className="full-field">Use of funds <em>Required for review</em><textarea aria-describedby="use-of-funds-error" name="use_of_funds" rows={4} defaultValue={workspace.draft.use_of_funds} maxLength={1000} /><FieldError id="use-of-funds-error" error={errors?.use_of_funds} /></label>
             </div></section>
 
-            <div className="form-actions"><div><strong>{pending ? "Saving this revision…" : "Ready when the case is specific."}</strong><span>Review assesses the writing against the fixed rubric; it never rewrites your answers.</span></div><button className="button button-light" type="submit" name="intent" value="save" formNoValidate disabled={pending}><Save size={16} /> {pending ? "Saving…" : "Save draft"}</button><button className="button button-dark" type="submit" name="intent" value="review" disabled={pending}><Send size={16} /> {pending ? "Submitting…" : "Submit for review"}</button></div>
+            {hasSubmissionFeedback ? <div className="form-feedback" ref={feedbackRef} tabIndex={-1}>
+              {state.status === "conflict" || (state.status === "error" && !hasFieldErrors) ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>{state.status === "conflict" ? "This draft changed elsewhere." : "The profile needs attention."}</strong><p>{state.message}</p></div></div> : null}
+              {errors && Object.keys(errors).length ? <div className="validation-summary" role="alert"><strong>Review {Object.keys(errors).length} field{Object.keys(errors).length === 1 ? "" : "s"} before continuing.</strong><ul>{Object.values(errors).map((error) => <li key={error}>{error}</li>)}</ul></div> : null}
+              {state.status === "review_ready" && state.reviewId ? <div className="submission-banner" role="status"><ShieldCheck size={19} /><div><strong>Review complete.</strong><p>{state.message}</p></div><Link href={`/founder/reviews/${state.reviewId}`}>Open review</Link></div> : null}
+            </div> : null}
+
+            <div className="form-actions"><div><strong>{pending ? (pendingIntent === "review" ? "Reviewing this revision…" : "Saving this revision…") : "Ready when the case is specific."}</strong><span>Review assesses the writing against the fixed rubric; it never rewrites your answers.</span></div><button className="button button-light" type="submit" name="intent" value="save" formNoValidate disabled={pending}>{draftConfirmed ? <Check size={16} /> : <Save size={16} />} {pendingIntent === "save" ? "Saving…" : draftConfirmed ? "Draft saved" : "Save draft"}</button><button className="button button-dark" type="submit" name="intent" value="review" formNoValidate disabled={pending}><Send size={16} /> {pendingIntent === "review" ? "Submitting…" : "Submit for review"}</button></div>
           </fieldset>
         </form>
       </div>
