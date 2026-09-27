@@ -2,17 +2,46 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, AudioLines, Check, CircleAlert, Headphones, Mic2, ShieldCheck } from "lucide-react";
 import { simulatorPersonas } from "@/data/simulator-demo";
 import { useAudioCapture } from "@/hooks/use-audio-capture";
 
-export function SimulatorSetupLive() {
+type ActiveSession = { id: string; state: string; state_version: number };
+
+export function SimulatorSetupLive({ activeSession, draftVersion, remainingFree, startupId, workspaceUnavailable }: {
+  activeSession: ActiveSession | null;
+  draftVersion: number;
+  remainingFree: number;
+  startupId: string | null;
+  workspaceUnavailable: boolean;
+}) {
+  const router = useRouter();
   const mic = useAudioCapture();
   const [consent, setConsent] = useState(false);
-  const ready = mic.state === "ready" && consent;
-  const enterSession = () => {
-    window.sessionStorage.setItem("pitch-deck-simulator-consent-at", String(Date.now()));
-    mic.release();
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const ready = mic.state === "ready" && consent && Boolean(startupId) && remainingFree > 0 && !workspaceUnavailable;
+  const enterSession = async () => {
+    if (!ready || !startupId) return;
+    setStarting(true);
+    setStartError(null);
+    try {
+      const response = await fetch("/api/v1/simulations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
+        body: JSON.stringify({ startup_id: startupId, draft_version: draftVersion, consent_version: "recording-consent-v1" }),
+      });
+      const payload = await response.json() as { data?: { session_id: string }; error?: { message: string } };
+      if (!response.ok || !payload.data) throw new Error(payload.error?.message ?? "The session could not start.");
+      window.sessionStorage.setItem("pitch-deck-simulator-consent-at", String(Date.now()));
+      mic.release();
+      router.push(`/simulator/${payload.data.session_id}`);
+    } catch (error) {
+      setStartError(error instanceof Error ? error.message : "The session could not start.");
+      setStarting(false);
+    }
   };
 
   return (
@@ -21,13 +50,13 @@ export function SimulatorSetupLive() {
         <Link className="back-link" href="/founder"><ArrowLeft size={15} /> Founder overview</Link>
         <div className="simulator-heading-grid">
           <div><h1>Prepare the room before you pitch.</h1><p>A focused practice with one generated follow-up question. Check your microphone, understand how the recording is processed, then begin when you are ready.</p></div>
-          <div className="session-allowance"><strong>3</strong><span>free learning sessions available</span><small>Practice score · public profile unchanged</small></div>
+          <div className="session-allowance"><strong>{remainingFree}</strong><span>free learning session{remainingFree === 1 ? "" : "s"} available</span><small>Lifetime allowance · reserved only after the panel is ready</small></div>
         </div>
       </div>
 
       <section className="setup-impact" aria-label="Practice session processing">
         <ShieldCheck size={20} />
-        <div><strong>Provider-connected practice</strong><p>Your recording is sent to Groq for transcription. Pitch Deck does not save the audio file in this build.</p></div>
+        <div><strong>Provider-connected practice</strong><p>Your profile snapshot and session state persist across refresh. Audio storage and scored feedback connect in the next Phase 3 slice.</p></div>
         <span>Private session</span>
       </section>
 
@@ -40,6 +69,10 @@ export function SimulatorSetupLive() {
             <button className="button button-light" type="button" onClick={() => void mic.request()} disabled={mic.state === "requesting"}>{mic.state === "ready" ? "Check again" : "Check microphone"}</button>
           </div>
           {(mic.state === "denied" || mic.state === "unsupported" || mic.state === "error") && <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>Microphone is not ready</strong><p>{mic.message}</p></div></div>}
+          {workspaceUnavailable ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>Profile storage is unavailable</strong><p>Apply the latest Supabase migrations, then reload this page before starting practice.</p></div></div> : null}
+          {!startupId && !workspaceUnavailable ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>Create a founder profile first</strong><p>Practice snapshots the current draft so later feedback remains tied to the words you rehearsed.</p></div></div> : null}
+          {startError ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>The room did not open</strong><p>{startError} Your free allowance was not consumed.</p></div></div> : null}
+          {activeSession ? <div className="session-resume" role="status"><div><strong>Practice already in progress</strong><p>Resume the saved {activeSession.state.replaceAll("_", " ")} session instead of reserving another free slot.</p></div><Link className="button button-light" href={`/simulator/${activeSession.id}`}>Resume session <ArrowRight size={16} /></Link></div> : null}
 
           <label className="recording-consent">
             <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
@@ -48,7 +81,7 @@ export function SimulatorSetupLive() {
 
           <div className="setup-actions">
             <div><Headphones size={17} /><span>Headphones recommended for the spoken question.</span></div>
-            {ready ? <Link className="button button-dark" href="/simulator/demo-session" onClick={enterSession}>Enter the pitch room <ArrowRight size={16} /></Link> : <button className="button button-dark" type="button" disabled>Complete readiness first</button>}
+            {activeSession ? null : <button className="button button-dark" type="button" disabled={!ready || starting} onClick={() => void enterSession()}>{starting ? "Preparing your panel…" : ready ? <>Enter the pitch room <ArrowRight size={16} /></> : remainingFree === 0 ? "Free sessions used" : "Complete readiness first"}</button>}
           </div>
         </section>
 
@@ -57,13 +90,13 @@ export function SimulatorSetupLive() {
           <ol className="practice-steps">
             <li><span>01</span><div><strong>Deliver your pitch</strong><p>Aim for three minutes. The hard stop is five.</p></div></li>
             <li><span>02</span><div><strong>Answer one generated question</strong><p>Groq selects one fictional persona to probe your transcript.</p></div></li>
-            <li><span>03</span><div><strong>Review the result</strong><p>Your answer is transcribed; the structured scoring report remains the next integration stage.</p></div></li>
+            <li><span>03</span><div><strong>Review the result</strong><p>Your answer is transcribed; structured scoring and durable reports are the next Phase 3 slice.</p></div></li>
           </ol>
           <div className="persona-preview-list">
-            <p>Today’s fictional panel</p>
+            <p>Example fictional panel</p>
             {simulatorPersonas.map((persona) => <div key={persona.key}><span>{persona.initials}</span><div><strong>{persona.name}</strong><small>{persona.focus}</small></div><Check size={14} /></div>)}
           </div>
-          <p className="fixture-disclosure"><AudioLines size={16} /> Personas are fictional. The follow-up question and voice are generated during your session.</p>
+          <p className="fixture-disclosure"><AudioLines size={16} /> Your three fictional personas are generated from the saved sector, stage, and tagline when the room starts.</p>
         </aside>
       </div>
     </main>

@@ -48,7 +48,7 @@ Pitch Deck is a two-sided marketplace connecting founders and investors, paired 
 ## Operating Context
 
 - Founder flow: save a low-friction draft → fill required fields (problem, solution, team, ask) → submit for LLM scoring against a fixed rubric → score ≥ 50/100 publishes the profile; below that, it stays in draft with per-category flags, framed as "draft vs. published," not punitive.
-- Simulator flow: 3 AI investor personas (invented, never real/famous people) → learner pitches live for ~3–5 min via browser mic → Groq Whisper transcription → 1–2 personas ask a live follow-up question → detailed structured feedback per persona (what worked, what didn't, how to improve, resources) plus pacing/filler-word metrics.
+- Simulator flow: 3 AI investor personas (invented, never real/famous people) → learner pitches live for ~3–5 min via browser mic → Groq Whisper transcription → exactly 2 distinct personas each ask one live follow-up question → the learner records one answer per question → detailed structured feedback from all 3 personas (what worked, what didn't, how to improve, resources) plus pacing/filler-word metrics.
 - Investor flow: search/filter (sector, stage, geography, ask range, readiness-score threshold) → full profile view (still no direct contact info) → Request Intro → in-app messaging only.
 - Tooltip/glossary mechanism required on both profile forms for finance/VC jargon (TAM/SAM/SOM, MRR/ARR, runway, burn rate, valuation, equity, SAFE, check size, stage) — inexperienced founders and individual/angel investors are both expected users, not just VC professionals.
 - Built for a hackathon with an October 4, 2026 deadline; the marketplace and the simulator must carry equal weight in the live demo, neither is a side feature.

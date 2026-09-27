@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type ComponentType } from "react";
 import { Gauge } from "lucide-react";
 import type { PersonaKey } from "@/data/simulator-demo";
+import type { SimulatorPersona } from "@/lib/simulator";
 import { classifyDevice, mayAttemptFullScene, type DeviceClass } from "@/lib/device-tier";
 import { LiteBoardroom } from "./lite-boardroom";
 import { FounderVoiceBar } from "./founder-voice-bar";
@@ -27,7 +28,7 @@ function saveReducedPreference(reduced: boolean) {
   }
 }
 
-export function SimulatorBoardroom({ activeSpeaker, amplitude, playbackActive = false, busy = false, showMicrophone = false }: { activeSpeaker: PersonaKey | "founder" | null; amplitude: number; playbackActive?: boolean; busy?: boolean; showMicrophone?: boolean }) {
+export function SimulatorBoardroom({ activeSpeaker, amplitude, personas, playbackActive = false, busy = false, showMicrophone = false }: { activeSpeaker: PersonaKey | "founder" | null; amplitude: number; personas: SimulatorPersona[]; playbackActive?: boolean; busy?: boolean; showMicrophone?: boolean }) {
   const [deviceClass, setDeviceClass] = useState<DeviceClass>("unknown");
   const [eligible, setEligible] = useState(false);
   const [fullRequested, setFullRequested] = useState(false);
@@ -122,7 +123,7 @@ export function SimulatorBoardroom({ activeSpeaker, amplitude, playbackActive = 
       </div>
       <div className="scene-stack">
         {/* One room is visible from first paint, while GPU effects initialise or recover. */}
-        <LiteBoardroom activeSpeaker={activeSpeaker} amplitude={amplitude} playbackActive={playbackActive} staticMode={reducedMotion || !fullRequested} />
+        <LiteBoardroom activeSpeaker={activeSpeaker} amplitude={amplitude} personas={personas} playbackActive={playbackActive} staticMode={reducedMotion || !fullRequested} />
         {fullRequested && !graphicsFailed && FullScene && (
           <FullScene activeSpeaker={activeSpeaker} amplitude={amplitude} playbackActive={playbackActive} allowRecovery={!busy} reducedMotion={reducedMotion} onFailure={failure} onReady={ready} />
         )}

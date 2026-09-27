@@ -1,6 +1,7 @@
 "use client";
 
-import { simulatorPersonas, type PersonaKey } from "@/data/simulator-demo";
+import type { PersonaKey } from "@/data/simulator-demo";
+import { personaInitials, type SimulatorPersona } from "@/lib/simulator";
 
 type ActiveSpeaker = PersonaKey | "founder" | null;
 
@@ -49,7 +50,7 @@ function HolographicChair({ index, active, amplitude, initials }: { index: numbe
   );
 }
 
-export function LiteBoardroom({ activeSpeaker, amplitude, playbackActive = false, staticMode = false }: { activeSpeaker: ActiveSpeaker; amplitude: number; playbackActive?: boolean; staticMode?: boolean }) {
+export function LiteBoardroom({ activeSpeaker, amplitude, personas, playbackActive = false, staticMode = false }: { activeSpeaker: ActiveSpeaker; amplitude: number; personas: SimulatorPersona[]; playbackActive?: boolean; staticMode?: boolean }) {
   return (
     <div
       className={"lite-boardroom" + (staticMode ? " is-static" : "") + (playbackActive ? " is-previewing" : "")}
@@ -70,9 +71,9 @@ export function LiteBoardroom({ activeSpeaker, amplitude, playbackActive = false
       </div>
 
       <div className="chair-row">
-        {simulatorPersonas.map((persona, index) => (
-          <div className={"chair-position position-" + (index + 1)} key={persona.key}>
-            <HolographicChair index={index} active={activeSpeaker === persona.key} amplitude={amplitude} initials={persona.initials} />
+        {personas.map((persona, index) => (
+          <div className={"chair-position position-" + (index + 1)} key={persona.persona_key}>
+            <HolographicChair index={index} active={activeSpeaker === persona.persona_key} amplitude={amplitude} initials={personaInitials(persona.name)} />
             <div className="chair-identity"><strong>{persona.name}</strong><small>{persona.focus}</small></div>
           </div>
         ))}

@@ -20,7 +20,7 @@ Exit gate: a founder can save, submit, understand review evidence, and inspect t
 
 ## Phase 3 — AI pitch simulator
 
-Build setup, microphone readiness, pitch capture, one-question Q&A, processing, and report surfaces. Add the contained Three.js WebGPU/TSL boardroom as a progressive enhancement with static fallbacks and device-loss recovery.
+Build setup, microphone readiness, pitch capture, a two-question Q&A from two distinct members of the three-person panel, processing, and report surfaces. Add the contained Three.js WebGPU/TSL boardroom as a progressive enhancement with static fallbacks and device-loss recovery.
 
 Exit gate: session controls remain fully usable without WebGPU; reduced motion and failure states preserve meaning; one end-to-end provider rehearsal succeeds.
 

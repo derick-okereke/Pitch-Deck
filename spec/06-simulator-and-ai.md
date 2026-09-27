@@ -1,6 +1,6 @@
 # Simulator, audio, and AI specification
 
-Three logical LLM calls per normal completed session: personas, one follow-up question, feedback. STT and TTS are separate provider calls and must appear in cost/latency instrumentation. Profile review is separate from a simulator session. Exactly-three describes workflow steps; explicit bounded retries can increase network attempts and must be recorded honestly.
+Three logical LLM calls per normal completed session: personas, one call that returns two follow-up questions, feedback. STT and TTS are separate provider calls and must appear in cost/latency instrumentation. Profile review is separate from a simulator session. Exactly-three describes workflow steps; explicit bounded retries can increase network attempts and must be recorded honestly.
 
 ## Durable state machine
 
@@ -11,9 +11,9 @@ Three logical LLM calls per normal completed session: personas, one follow-up qu
 | pitch_processing | Validate media and run STT | pitch_transcribed; retryable_error(pitch_processing); failed |
 | pitch_transcribed | Nonempty accepted transcript persisted | question_generating; cancelled |
 | question_generating | Call2 with saved transcript | question_ready; retryable_error(question_generating) |
-| question_ready | Question text persisted, TTS optional | answer_processing after answer commit; cancelled |
-| answer_processing | Validate answer media and run STT | ready_for_feedback; retryable_error(answer_processing) |
-| ready_for_feedback | Both transcripts and metrics persisted | feedback_generating; cancelled |
+| question_ready | Two questions from two distinct personas persisted; next unanswered question selected | answer_processing after each answer commit; cancelled |
+| answer_processing | Validate answer media and run STT | question_ready after answer one; ready_for_feedback after answer two; retryable_error(answer_processing) |
+| ready_for_feedback | Pitch plus both answer transcripts and metrics persisted | feedback_generating; cancelled |
 | feedback_generating | Call3, validate schema/evidence | completed in atomic feedback/usage transaction; retryable_error(feedback_generating) |
 | retryable_error | Record failed_stage/error/attempt count | Resume that stage only using same input hash; cancelled/failed/expired |
 | completed | Exactly one report, quota charge once | Terminal; public selection is a separate action |
@@ -25,7 +25,7 @@ Browser-only phases: microphone_check, countdown3 seconds, recording_pitch, uplo
 
 ## Recording and transcription
 
-Use getUserMedia({audio:true,video:false}) after consent and an explicit gesture. Mic check shows level and permission state without uploading audio or creating a charged attempt. No camera permission. Record one pitch Blob, then one answer Blob; upload after recording ends. Five minutes is a hard pitch stop;90 seconds hard answer stop. Allow early end after30 seconds pitch/5 seconds answer. If speech is unusable, explain and allow rerecording only before accepted transcript; release allowance on terminal failure.
+Use getUserMedia({audio:true,video:false}) after consent and an explicit gesture. Mic check shows level and permission state without uploading audio or creating a charged attempt. No camera permission. Record one pitch Blob, then one answer Blob for each of the two questions; upload after each recording ends. Five minutes is a hard pitch stop; 90 seconds is the hard stop for each answer. Allow early end after 30 seconds pitch/5 seconds per answer. If speech is unusable, explain and allow rerecording only before accepted transcript; release allowance on terminal failure.
 
 App duration/size limits and codec negotiation are in data spec. Send accepted audio to Groq's transcription endpoint with `whisper-large-v3-turbo`, language `en`, temperature0, `verbose_json` and word/segment timestamps when verified in account smoke test. Groq documents file transcription and timestamp options; this does **not** establish a streaming live transcription implementation. [Groq speech-to-text docs](https://console.groq.com/docs/speech-to-text)
 
@@ -63,15 +63,15 @@ Input only sector, tagline, stage and schema/prompt version. Output `{schema_ver
 
 Voice style maps to three server-configured, distinct ElevenLabs voice IDs from the user's available licensed stock pool. The model cannot return arbitrary voice IDs. Missing voice setup blocks voice acceptance B05; question text can still work. No generated or cloned likenesses/voices.
 
-### Call2: one question
+### Call2: two questions from two personas
 
-Input all three persona descriptors, pitch transcript and word/segment references, founder stage. Model selects one persona and returns `{schema_version:"1",persona_key,question:text20..400,source_quote:text1..240,focus_category:one content key}`. Validate persona exists and source_quote is in pitch transcript. One question, not a list or multi-part interrogation. It probes an actual statement or meaningful missing detail; do not invent claimed revenue/customer names. No answer-dependent second question in this demo.
+Input all three persona descriptors, pitch transcript and word/segment references, founder stage. Model selects exactly two different personas and returns `{schema_version:"1",questions:Question[2]}` in one call. Question is `{question_index:1|2,persona_key,question:text20..400,source_quote:text1..240,focus_category:one content key}`. Validate both personas exist, persona keys and indexes are unique, and each source_quote is in the pitch transcript. Each persona asks one single-part question; the two questions must be materially distinct and probe an actual statement or meaningful missing detail. Do not invent claimed revenue/customer names. The second question is generated from the pitch, not from answer one.
 
-TTS reads only the validated question using the selected voice. Question text is displayed before speech. Replay caches same output; audio playback state drives persona pulse. If TTS fails, offer 'Continue with the written question' without inventing audio or blocking feedback. During demo validation, a real voiced question must still be demonstrated at least once. [ElevenLabs speech endpoint](https://elevenlabs.io/docs/api-reference/text-to-speech/convert)
+TTS reads each validated question using its selected persona voice. Question text is displayed before speech. Replay caches the same output; audio playback state drives persona pulse. If TTS fails, offer 'Continue with the written question' without inventing audio or blocking feedback. During demo validation, a real voiced question must still be demonstrated at least once. [ElevenLabs speech endpoint](https://elevenlabs.io/docs/api-reference/text-to-speech/convert)
 
 ### Call3: feedback
 
-Input immutable pitch transcript, question, answer transcript, computed metrics, stage, personas and rubric. Output `{schema_version:"1",categories:SpokenCategory[7],persona_feedback:PersonaFeedback[3]}`. Same category rating/rationale/next_step bounds as profile. Spoken evidence `{segment:"pitch"|"answer",quote:text1..240,start_ms:integer|null,end_ms:integer|null}`; validate actual substring and optional in-range supplied timestamps. Required exactly one of each category and each persona key. Model must not return aggregate metrics or public badge/tier flags.
+Input immutable pitch transcript, both questions, both answer transcripts, computed metrics, stage, personas and rubric. Output `{schema_version:"1",categories:SpokenCategory[7],persona_feedback:PersonaFeedback[3]}`. Same category rating/rationale/next_step bounds as profile. Spoken evidence `{segment:"pitch"|"answer_1"|"answer_2",quote:text1..240,start_ms:integer|null,end_ms:integer|null}`; validate actual substring and optional in-range supplied timestamps. Required exactly one of each category and each persona key, including feedback from the persona who did not ask a question. Model must not return aggregate metrics or public badge/tier flags.
 
 PersonaFeedback: `{persona_key,what_worked:FeedbackItem[1..3],what_didnt:FeedbackItem[1..3],how_to_improve:Action[2..4],resources:ResourceSuggestion[1..2]}`. FeedbackItem `{observation:text40..500,evidence:SpokenEvidence|null}`; null permitted only for explicitly missing content ('No market estimate was stated'), not a claimed quote. Action `{action:text30..400,why:text30..300}`. ResourceSuggestion `{resource_id:catalog key,reason:text30..300}`. Educational depth comes from distinct evidence/action items, not filler word count. Across each persona's notes at least one valid quote is required; do not hallucinate praise when content is weak.
 

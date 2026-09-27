@@ -155,7 +155,7 @@ export function SimulatorSession() {
       </div>
 
       <div className="session-workspace">
-        <SimulatorBoardroom activeSpeaker={activeSpeaker} amplitude={recording ? level : 0} playbackActive={playing} busy={recording || playing} showMicrophone={phase === "countdown" || recording} />
+        <SimulatorBoardroom activeSpeaker={activeSpeaker} amplitude={recording ? level : 0} personas={simulatorPersonas.map((persona) => ({ persona_key: persona.key, name: persona.name, title: persona.title, focus: persona.focus, voice_style: persona.key === "p1" ? "warm-rigorous" : persona.key === "p2" ? "direct-analytical" : "calm-strategic" }))} playbackActive={playing} busy={recording || playing} showMicrophone={phase === "countdown" || recording} />
 
         <section className="session-console" aria-labelledby="session-task-title">
           <div className="session-progress" aria-label="Session progress"><i className={phase !== "ready" ? "done" : "active"} /><i className={phase === "question" || phase === "recording-answer" || phase === "feedback-processing" || phase === "complete" ? "done" : ""} /><i className={phase === "feedback-processing" ? "active" : phase === "complete" ? "done" : ""} /><span>Pitch</span><span>Question</span><span>Feedback</span></div>

@@ -23,10 +23,322 @@ export type Database = {
         };
         Relationships: [];
       };
+      startups: {
+        Row: {
+          id: string;
+          founder_id: string;
+          draft_payload: Json;
+          draft_version: number;
+          published_revision_id: string | null;
+          publication_status: "draft" | "published" | "unpublished";
+          selected_audio_session_id: string | null;
+          is_demo: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      profile_revisions: {
+        Row: {
+          id: string;
+          startup_id: string;
+          revision_number: number;
+          draft_version: number;
+          content_hash: string;
+          payload: Json;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      profile_reviews: {
+        Row: {
+          id: string;
+          revision_id: string;
+          rubric_version: string;
+          model_id: string | null;
+          prompt_version: string;
+          operation_id: string;
+          state: "reviewing" | "needs_improvement" | "passed" | "review_failed";
+          ratings: Json | null;
+          evidence: Json | null;
+          flags: Json | null;
+          content_points: number | null;
+          error_code: string | null;
+          completed_at: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      simulator_sessions: {
+        Row: {
+          id: string;
+          founder_id: string;
+          startup_id: string;
+          snapshot_revision_id: string;
+          tier_at_start: "free" | "pro";
+          entitlement_source: string;
+          state: Database["public"]["Enums"]["simulator_session_state"];
+          state_version: number;
+          consent_version: string;
+          expires_at: string;
+          started_at: string;
+          completed_at: string | null;
+          failure_code: string | null;
+          is_fixture: boolean;
+          idempotency_key: string;
+          input_hash: string;
+          answered_question_count: number;
+          retry_stage: string | null;
+          retry_count: number;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      simulator_personas: {
+        Row: {
+          session_id: string;
+          persona_key: "p1" | "p2" | "p3";
+          name: string;
+          title: string;
+          focus: string;
+          voice_style: "warm-rigorous" | "direct-analytical" | "calm-strategic";
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      usage_reservations: {
+        Row: {
+          session_id: string;
+          founder_id: string;
+          state: "reserved" | "consumed" | "released";
+          expires_at: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      simulator_recordings: {
+        Row: {
+          id: string;
+          session_id: string;
+          segment_kind: "pitch" | "answer";
+          question_index: number | null;
+          segment_slot: number;
+          storage_path: string;
+          mime_type: string;
+          byte_size: number;
+          duration_ms: number;
+          transcript: string | null;
+          word_timestamps: Json | null;
+          segment_timestamps: Json | null;
+          word_count: number | null;
+          words_per_minute: number | null;
+          filler_matches: number | null;
+          filler_token_count: number | null;
+          filler_percent: number | null;
+          accepted_at: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      simulator_questions: {
+        Row: {
+          session_id: string;
+          question_index: number;
+          persona_key: "p1" | "p2" | "p3";
+          question: string;
+          source_quote: string;
+          focus_category: "problem" | "solution" | "market" | "traction" | "business_model" | "ask";
+          prompt_version: string;
+          model_id: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      simulator_reports: {
+        Row: {
+          session_id: string;
+          schema_version: string;
+          rubric_version: string;
+          prompt_version: string;
+          model_id: string;
+          categories: Json;
+          persona_feedback: Json;
+          session_points: number;
+          delivery_points: number;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
-    Enums: { account_role: "founder" | "investor" };
+    Functions: {
+      save_founder_draft: {
+        Args: { p_founder_id: string; p_expected_version: number; p_payload: Json };
+        Returns: Array<{ startup_id: string; draft_version: number; saved_at: string }>;
+      };
+      begin_profile_review: {
+        Args: {
+          p_founder_id: string;
+          p_startup_id: string;
+          p_draft_version: number;
+          p_content_hash: string;
+          p_rubric_version: string;
+          p_prompt_version: string;
+        };
+        Returns: Array<{
+          review_id: string;
+          revision_id: string;
+          review_state: "reviewing" | "needs_improvement" | "passed" | "review_failed";
+          reused: boolean;
+        }>;
+      };
+      complete_profile_review: {
+        Args: {
+          p_review_id: string;
+          p_model_id: string;
+          p_ratings: Json;
+          p_evidence: Json;
+          p_flags: Json;
+          p_content_points: number;
+        };
+        Returns: Array<{ published: boolean; reviewed_earlier_draft: boolean }>;
+      };
+      fail_profile_review: {
+        Args: { p_review_id: string; p_error_code: string };
+        Returns: undefined;
+      };
+      start_simulator_session: {
+        Args: {
+          p_founder_id: string;
+          p_startup_id: string;
+          p_draft_version: number;
+          p_content_hash: string;
+          p_consent_version: string;
+          p_idempotency_key: string;
+          p_input_hash: string;
+        };
+        Returns: Array<{
+          session_id: string;
+          session_state: Database["public"]["Enums"]["simulator_session_state"];
+          state_version: number;
+          remaining_free: number;
+          reused: boolean;
+        }>;
+      };
+      complete_simulator_preparation: {
+        Args: { p_session_id: string; p_personas: Json };
+        Returns: Array<{
+          session_state: Database["public"]["Enums"]["simulator_session_state"];
+          state_version: number;
+        }>;
+      };
+      fail_simulator_preparation: {
+        Args: { p_session_id: string; p_error_code: string };
+        Returns: undefined;
+      };
+      cancel_simulator_session: {
+        Args: { p_founder_id: string; p_session_id: string; p_expected_version: number };
+        Returns: number;
+      };
+      begin_simulator_segment: {
+        Args: {
+          p_founder_id: string;
+          p_session_id: string;
+          p_expected_version: number;
+          p_segment_kind: "pitch" | "answer";
+          p_question_index: number | null;
+          p_storage_path: string;
+          p_mime_type: string;
+          p_byte_size: number;
+          p_duration_ms: number;
+        };
+        Returns: number;
+      };
+      complete_pitch_and_questions: {
+        Args: {
+          p_session_id: string;
+          p_transcript: string;
+          p_words: Json;
+          p_segments: Json;
+          p_word_count: number;
+          p_wpm: number;
+          p_filler_matches: number;
+          p_filler_token_count: number;
+          p_filler_percent: number;
+          p_questions: Json;
+          p_prompt_version: string;
+          p_model_id: string;
+        };
+        Returns: number;
+      };
+      complete_simulator_answer: {
+        Args: {
+          p_session_id: string;
+          p_question_index: number;
+          p_transcript: string;
+          p_words: Json;
+          p_segments: Json;
+          p_word_count: number;
+          p_wpm: number;
+          p_filler_matches: number;
+          p_filler_token_count: number;
+          p_filler_percent: number;
+        };
+        Returns: Array<{ session_state: Database["public"]["Enums"]["simulator_session_state"]; state_version: number; answered_question_count: number }>;
+      };
+      begin_simulator_feedback: {
+        Args: { p_founder_id: string; p_session_id: string; p_expected_version: number };
+        Returns: number;
+      };
+      complete_simulator_feedback: {
+        Args: {
+          p_session_id: string;
+          p_schema_version: string;
+          p_rubric_version: string;
+          p_prompt_version: string;
+          p_model_id: string;
+          p_categories: Json;
+          p_persona_feedback: Json;
+          p_session_points: number;
+          p_delivery_points: number;
+        };
+        Returns: number;
+      };
+      fail_simulator_stage: {
+        Args: { p_session_id: string; p_expected_state: Database["public"]["Enums"]["simulator_session_state"]; p_error_code: string };
+        Returns: number | null;
+      };
+    };
+    Enums: {
+      account_role: "founder" | "investor";
+      startup_publication_status: "draft" | "published" | "unpublished";
+      profile_review_state: "reviewing" | "needs_improvement" | "passed" | "review_failed";
+      simulator_tier: "free" | "pro";
+      simulator_session_state:
+        | "preparing" | "ready" | "pitch_processing" | "pitch_transcribed" | "question_generating"
+        | "question_ready" | "answer_processing" | "ready_for_feedback" | "feedback_generating"
+        | "retryable_error" | "completed" | "failed" | "cancelled" | "expired";
+      simulator_persona_key: "p1" | "p2" | "p3";
+      simulator_voice_style: "warm-rigorous" | "direct-analytical" | "calm-strategic";
+      usage_reservation_state: "reserved" | "consumed" | "released";
+      simulator_segment_kind: "pitch" | "answer";
+    };
     CompositeTypes: Record<string, never>;
   };
 };
