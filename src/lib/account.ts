@@ -38,6 +38,5 @@ export const getCurrentAccount = cache(async (): Promise<CurrentAccount | null> 
 });
 
 export function accountHome(account: Pick<CurrentAccount, "role" | "organizationName">) {
-  if (!account.organizationName) return "/onboarding";
   return account.role === "investor" ? "/discover" : "/founder";
 }

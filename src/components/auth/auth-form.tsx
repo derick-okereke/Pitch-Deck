@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import { requestPasswordReset, signIn, signUp, updatePassword, type AuthFormState } from "@/app/auth/actions";
+import { useFormRecovery } from "@/hooks/use-form-recovery";
 
 const initialState: AuthFormState = {};
 
@@ -22,11 +23,14 @@ function SubmitButton({ pending, children }: { pending: boolean; children: React
 
 export function SignUpForm({ defaultRole }: { defaultRole: "founder" | "investor" }) {
   const [state, action, pending] = useActionState(signUp, initialState);
-  return <form className="auth-form" action={action} noValidate>
+  const formRef = useRef<HTMLFormElement>(null);
+  const { recoveredAt } = useFormRecovery({ formRef, storageKey: "pitch-deck:auth:sign-up" });
+  return <form className="auth-form" action={action} noValidate ref={formRef}>
     <fieldset className="auth-role-choice"><legend>I am joining as</legend><label><input type="radio" name="role" value="founder" defaultChecked={defaultRole === "founder"} /><span>Founder<small>Build and practise your pitch.</small></span></label><label><input type="radio" name="role" value="investor" defaultChecked={defaultRole === "investor"} /><span>Investor<small>Discover and contact founders.</small></span></label></fieldset>
     <label><span>Name</span><input name="displayName" type="text" autoComplete="name" maxLength={80} required /><ErrorText errors={state.fieldErrors?.displayName} /></label>
     <label><span>Email</span><input name="email" type="email" autoComplete="email" maxLength={254} required /><ErrorText errors={state.fieldErrors?.email} /></label>
-    <label><span>Password</span><input name="password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required /><small>Use 12–128 characters. Password managers and paste are supported.</small><ErrorText errors={state.fieldErrors?.password} /></label>
+    <label><span>Password</span><input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={128} pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,128}" required /><small>Use 8–128 characters with a capital letter, number, and special character. Password managers and paste are supported.</small><ErrorText errors={state.fieldErrors?.password} /></label>
+    {recoveredAt ? <small className="form-recovery-note" role="status">Name, email, and role recovered from this browser. Your password was not stored.</small> : null}
     <Message state={state} /><SubmitButton pending={pending}>Create account</SubmitButton>
     <p className="auth-switch">Already have an account? <Link href="/auth/sign-in">Sign in</Link></p>
   </form>;
@@ -34,10 +38,13 @@ export function SignUpForm({ defaultRole }: { defaultRole: "founder" | "investor
 
 export function SignInForm() {
   const [state, action, pending] = useActionState(signIn, initialState);
-  return <form className="auth-form" action={action} noValidate>
+  const formRef = useRef<HTMLFormElement>(null);
+  const { recoveredAt } = useFormRecovery({ formRef, storageKey: "pitch-deck:auth:sign-in" });
+  return <form className="auth-form" action={action} noValidate ref={formRef}>
     <label><span>Email</span><input name="email" type="email" autoComplete="email" maxLength={254} required /><ErrorText errors={state.fieldErrors?.email} /></label>
     <label><span>Password</span><input name="password" type="password" autoComplete="current-password" maxLength={128} required /><ErrorText errors={state.fieldErrors?.password} /></label>
     <Link className="auth-forgot" href="/auth/forgot-password">Forgot your password?</Link>
+    {recoveredAt ? <small className="form-recovery-note" role="status">Your email was recovered. Passwords are never stored.</small> : null}
     <Message state={state} /><SubmitButton pending={pending}>Sign in</SubmitButton>
     <p className="auth-switch">New to Pitch Deck? <Link href="/auth/sign-up">Create an account</Link></p>
   </form>;
@@ -45,8 +52,11 @@ export function SignInForm() {
 
 export function ResetRequestForm() {
   const [state, action, pending] = useActionState(requestPasswordReset, initialState);
-  return <form className="auth-form" action={action} noValidate>
+  const formRef = useRef<HTMLFormElement>(null);
+  const { recoveredAt } = useFormRecovery({ formRef, storageKey: "pitch-deck:auth:reset-request" });
+  return <form className="auth-form" action={action} noValidate ref={formRef}>
     <label><span>Email</span><input name="email" type="email" autoComplete="email" maxLength={254} required /><ErrorText errors={state.fieldErrors?.email} /></label>
+    {recoveredAt ? <small className="form-recovery-note" role="status">Your email was recovered from this browser.</small> : null}
     <Message state={state} /><SubmitButton pending={pending}>Send reset link</SubmitButton>
     <p className="auth-switch"><Link href="/auth/sign-in">Return to sign in</Link></p>
   </form>;
@@ -55,7 +65,7 @@ export function ResetRequestForm() {
 export function UpdatePasswordForm() {
   const [state, action, pending] = useActionState(updatePassword, initialState);
   return <form className="auth-form" action={action} noValidate>
-    <label><span>New password</span><input name="password" type="password" autoComplete="new-password" minLength={12} maxLength={128} required /><small>Use 12–128 characters.</small><ErrorText errors={state.fieldErrors?.password} /></label>
+    <label><span>New password</span><input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={128} pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,128}" required /><small>Use 8–128 characters with a capital letter, number, and special character.</small><ErrorText errors={state.fieldErrors?.password} /></label>
     <Message state={state} /><SubmitButton pending={pending}>Update password</SubmitButton>
   </form>;
 }

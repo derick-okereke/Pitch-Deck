@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { accountHome } from "@/lib/account";
+import { accountPasswordSchema } from "@/lib/auth-validation";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthFormState = {
@@ -13,19 +14,24 @@ export type AuthFormState = {
 };
 
 const email = z.string().trim().email("Enter a valid email address.").max(254);
-const password = z.string().min(12, "Use at least 12 characters.").max(128, "Use no more than 128 characters.");
 const signUpSchema = z.object({
   displayName: z.string().trim().min(2, "Enter your name.").max(80),
   email,
-  password,
+  password: accountPasswordSchema,
   role: z.enum(["founder", "investor"]),
 });
 const signInSchema = z.object({ email, password: z.string().min(1, "Enter your password.").max(128) });
 
-function baseUrl(origin: string | null) {
-  const configured = process.env.APP_BASE_URL;
-  if (configured) return configured.replace(/\/$/, "");
-  return origin?.replace(/\/$/, "") ?? "http://localhost:3000";
+function baseUrl(headerStore: Awaited<ReturnType<typeof headers>>) {
+  const forwardedHost = headerStore.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const host = forwardedHost || headerStore.get("host");
+  const forwardedProto = headerStore.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  if (host && !host.startsWith("localhost") && !host.startsWith("127.0.0.1")) {
+    return `${forwardedProto || "https"}://${host}`;
+  }
+  const origin = headerStore.get("origin");
+  if (origin) return origin.replace(/\/$/, "");
+  return process.env.APP_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
 }
 
 function errors(error: z.ZodError): AuthFormState {
@@ -47,7 +53,7 @@ export async function signUp(_state: AuthFormState, formData: FormData): Promise
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      emailRedirectTo: `${baseUrl(headerStore.get("origin"))}/auth/callback`,
+      emailRedirectTo: `${baseUrl(headerStore)}/auth/callback`,
       data: { display_name: parsed.data.displayName, role: parsed.data.role },
     },
   });
@@ -80,13 +86,13 @@ export async function requestPasswordReset(_state: AuthFormState, formData: Form
   const headerStore = await headers();
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(parsed.data, {
-    redirectTo: `${baseUrl(headerStore.get("origin"))}/auth/callback?next=/auth/update-password`,
+    redirectTo: `${baseUrl(headerStore)}/auth/callback?next=/auth/update-password`,
   });
   return { success: true, message: "If an account exists for that email, a reset link is on its way." };
 }
 
 export async function updatePassword(_state: AuthFormState, formData: FormData): Promise<AuthFormState> {
-  const parsed = password.safeParse(formData.get("password"));
+  const parsed = accountPasswordSchema.safeParse(formData.get("password"));
   if (!parsed.success) return { message: parsed.error.issues[0].message, fieldErrors: { password: [parsed.error.issues[0].message] } };
 
   const supabase = await createClient();

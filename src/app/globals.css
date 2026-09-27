@@ -344,6 +344,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .submission-banner strong { font-size: 13px; }
 .submission-banner p { margin: 3px 0 0; color: #3f6650; font-size: 12px; line-height: 1.5; }
 .submission-banner a { display: inline-flex; align-items: center; gap: 7px; color: #166534; font-size: 12px; font-weight: 720; }
+.recovery-banner { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 15px 48px; color: #24415f; background: #eef5ff; border-bottom: 1px solid #c9dcf5; }
+.recovery-banner > svg { color: var(--blue); }.recovery-banner strong { font-size: 12px; }.recovery-banner p { margin: 3px 0 0; color: #526b86; font-size: 11px; line-height: 1.5; }.recovery-banner button { min-height: 38px; padding: 0 10px; color: var(--blue); background: transparent; border: 0; cursor: pointer; font-size: 10px; font-weight: 720; }
 .editor-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); align-items: start; }
 .editor-nav {
   position: sticky;
@@ -559,7 +561,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .form-section-heading { grid-template-columns: 32px 1fr; }
   .form-grid.two-col, .form-grid.three-col { grid-template-columns: 1fr; }
   .full-field { grid-column: auto; }
-  .editor-system-state, .validation-summary { padding-inline: 22px; }
+  .editor-system-state, .validation-summary, .recovery-banner { padding-inline: 22px; }
+  .recovery-banner { grid-template-columns: auto 1fr; }.recovery-banner button { grid-column: 2; justify-self: start; padding-inline: 0; }
   .validation-summary ul { columns: 1; }
   .team-member { padding: 20px 16px; }
   .form-actions { position: static; grid-template-columns: 1fr; padding: 22px; }

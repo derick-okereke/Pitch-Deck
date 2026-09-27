@@ -17,7 +17,7 @@ export default async function FounderDashboard() {
       <section className="founder-title-row">
         <div>
           <h1>Welcome, {firstName}.</h1>
-          <p>Your private founder workspace for {account.organizationName} is ready.</p>
+          <p>Your private founder workspace{account.organizationName ? ` for ${account.organizationName}` : ""} is ready.</p>
         </div>
         <Link className="button button-light" href="/founder/profile/edit"><FilePenLine size={16} /> Start founder profile</Link>
       </section>
@@ -48,7 +48,7 @@ export default async function FounderDashboard() {
 
         <article className="dashboard-status-card">
           <p className="eyebrow">Workspace</p>
-          <h2>{account.organizationName}</h2>
+          <h2>{account.organizationName ?? "Name your startup in the profile"}</h2>
           <dl>
             <div><dt>Profile</dt><dd>Private draft</dd></div>
             <div><dt>Member since</dt><dd>{shortDate(account.createdAt)}</dd></div>

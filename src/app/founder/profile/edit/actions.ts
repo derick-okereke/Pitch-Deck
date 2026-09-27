@@ -36,7 +36,7 @@ function isVersionConflict(message: string | undefined) {
   return message?.includes("DRAFT_VERSION_CONFLICT") ?? false;
 }
 
-export async function saveFounderProfile(
+async function saveFounderProfileUnsafe(
   _previousState: ProfileActionState,
   formData: FormData,
 ): Promise<ProfileActionState> {
@@ -179,6 +179,20 @@ export async function saveFounderProfile(
       draftVersion: saved.draft_version,
       startupId: saved.startup_id,
       reviewId: review.review_id,
+    };
+  }
+}
+
+export async function saveFounderProfile(
+  previousState: ProfileActionState,
+  formData: FormData,
+): Promise<ProfileActionState> {
+  try {
+    return await saveFounderProfileUnsafe(previousState, formData);
+  } catch {
+    return {
+      status: "error",
+      message: "The server could not finish saving this draft. Your typed work is still in this browser; try again in a moment.",
     };
   }
 }

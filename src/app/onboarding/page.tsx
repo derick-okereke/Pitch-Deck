@@ -37,6 +37,7 @@ export default async function OnboardingPage() {
         <OnboardingForm
           defaultName={account.displayName}
           organizationLabel={founder ? "Startup name" : "Firm or organization"}
+          recoveryKey={`pitch-deck:onboarding:${account.id}`}
         />
       </section>
     </main>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { accountHome } from "@/lib/account";
 import { createClient } from "@/lib/supabase/server";
 
@@ -9,9 +10,14 @@ function safeNext(value: string | null) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  if (code) {
+  const tokenHash = url.searchParams.get("token_hash");
+  const type = url.searchParams.get("type");
+  if (code || (tokenHash && type)) {
     const supabase = await createClient();
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    const result = code
+      ? await supabase.auth.exchangeCodeForSession(code)
+      : await supabase.auth.verifyOtp({ token_hash: tokenHash!, type: type as EmailOtpType });
+    const { data, error } = result;
     if (!error && data.user) {
       const requested = safeNext(url.searchParams.get("next"));
       if (requested) return NextResponse.redirect(new URL(requested, url.origin));
@@ -22,7 +28,7 @@ export async function GET(request: Request) {
         .maybeSingle();
       const destination = account
         ? accountHome({ role: account.role, organizationName: account.organization_name })
-        : "/onboarding";
+        : "/founder";
       return NextResponse.redirect(new URL(destination, url.origin));
     }
   }

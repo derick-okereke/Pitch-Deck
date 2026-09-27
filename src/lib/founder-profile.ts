@@ -1,9 +1,11 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { getVerifiedUser } from "@/lib/auth";
 import { defaultFounderDraft, founderDraftSchema, type FounderDraft } from "@/lib/profile";
 
 export type FounderWorkspace = {
+  ownerId: string;
   startupId: string | null;
   draftVersion: number;
   publicationStatus: "draft" | "published" | "unpublished";
@@ -13,6 +15,8 @@ export type FounderWorkspace = {
 };
 
 export async function getFounderWorkspace(): Promise<FounderWorkspace> {
+  const user = await getVerifiedUser();
+  const ownerId = user?.id ?? "signed-out";
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("startups")
@@ -21,6 +25,7 @@ export async function getFounderWorkspace(): Promise<FounderWorkspace> {
 
   if (error) {
     return {
+      ownerId,
       startupId: null,
       draftVersion: 0,
       publicationStatus: "draft",
@@ -31,6 +36,7 @@ export async function getFounderWorkspace(): Promise<FounderWorkspace> {
   }
   if (!data) {
     return {
+      ownerId,
       startupId: null,
       draftVersion: 0,
       publicationStatus: "draft",
@@ -42,6 +48,7 @@ export async function getFounderWorkspace(): Promise<FounderWorkspace> {
 
   const parsed = founderDraftSchema.safeParse(data.draft_payload);
   return {
+    ownerId,
     startupId: data.id,
     draftVersion: data.draft_version,
     publicationStatus: data.publication_status,

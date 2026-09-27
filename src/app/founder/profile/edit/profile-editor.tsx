@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Check, CircleAlert, CircleHelp, Eye, Plus, Save, Send, ShieldCheck, Trash2 } from "lucide-react";
 import type { FounderWorkspace } from "@/lib/founder-profile";
 import { founderSectors, minorToMajor, type FounderDraft } from "@/lib/profile";
 import { initialProfileActionState, saveFounderProfile, type ProfileActionState } from "./actions";
+import { useFormRecovery } from "@/hooks/use-form-recovery";
 
 const sections = [
   ["basics", "Basics"], ["problem", "Problem & solution"], ["market", "Market & traction"],
@@ -73,21 +74,47 @@ function TractionFields({ draft, stage, errors }: { draft: FounderDraft; stage: 
 
 export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
   const [dirty, setDirty] = useState(false);
-  const [state, formAction, pending] = useActionState(async (previousState: ProfileActionState, formData: FormData) => {
-    const nextState = await saveFounderProfile(previousState, formData);
-    if (nextState.draftVersion !== undefined) setDirty(false);
-    return nextState;
-  }, initialProfileActionState);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [state, formAction, pending] = useActionState<ProfileActionState, FormData>(saveFounderProfile, initialProfileActionState);
   const version = state.draftVersion ?? workspace.draftVersion;
   const [stage, setStage] = useState(workspace.draft.stage);
   const [sector, setSector] = useState(workspace.draft.sector);
   const [team, setTeam] = useState(() => workspace.draft.team.map((member, index) => ({ key: `initial-${index}`, member })));
+  const { clearRecovery, recoveredAt } = useFormRecovery({
+    formRef,
+    storageKey: `pitch-deck:founder-profile:${workspace.ownerId}`,
+    onRecover(values) {
+      if (["idea", "pre-seed", "seed", "growth"].includes(values.stage)) setStage(values.stage as FounderDraft["stage"]);
+      if (founderSectors.includes(values.sector as FounderDraft["sector"])) setSector(values.sector as FounderDraft["sector"]);
+      const indexes = Object.keys(values).flatMap((key) => {
+        const match = key.match(/^team\.(\d+)\./u);
+        return match ? [Number(match[1])] : [];
+      });
+      const count = indexes.length ? Math.min(5, Math.max(...indexes) + 1) : 0;
+      if (count) setTeam(Array.from({ length: count }, (_, index) => ({
+        key: `recovered-${index}`,
+        member: {
+          name: values[`team.${index}.name`] ?? "",
+          role: values[`team.${index}.role`] ?? "",
+          relevant_experience: values[`team.${index}.relevant_experience`] ?? "",
+        },
+      })));
+      setDirty(true);
+    },
+  });
 
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => { if (dirty) event.preventDefault(); };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
+
+  useEffect(() => {
+    if (state.draftVersion === undefined) return;
+    clearRecovery();
+    const timer = window.setTimeout(() => setDirty(false), 0);
+    return () => window.clearTimeout(timer);
+  }, [clearRecovery, state.draftVersion]);
 
   const markDirty = () => setDirty(true);
   const changeStage = (nextStage: FounderDraft["stage"]) => {
@@ -105,13 +132,14 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
       </section>
 
       {workspace.loadError ? <div className="persistent-error editor-system-state" role="alert"><CircleAlert size={18} /><div><strong>The saved draft could not be loaded.</strong><p>Reload before entering information. If this is a new environment, apply the latest Supabase migration first.</p></div></div> : null}
+      {recoveredAt ? <div className="recovery-banner" role="status"><Check size={17} /><div><strong>Unsaved work recovered from this browser.</strong><p>Review it, then save when you are ready. Passwords and uploaded files are never stored this way.</p></div><button type="button" onClick={clearRecovery}>Discard recovery copy</button></div> : null}
       {state.status === "conflict" || state.status === "error" ? <div className="persistent-error editor-system-state" role="alert"><CircleAlert size={18} /><div><strong>{state.status === "conflict" ? "This draft changed elsewhere." : "The profile needs attention."}</strong><p>{state.message}</p></div></div> : null}
       {errors && Object.keys(errors).length ? <div className="validation-summary" role="alert"><strong>Review {Object.keys(errors).length} field{Object.keys(errors).length === 1 ? "" : "s"} before continuing.</strong><ul>{Object.values(errors).map((error) => <li key={error}>{error}</li>)}</ul></div> : null}
       {(state.status === "reviewing" || state.status === "review_ready") && state.reviewId ? <div className="submission-banner" role="status"><ShieldCheck size={19} /><div><strong>{state.status === "review_ready" ? "Review complete." : "Revision secured for review."}</strong><p>{state.message}</p></div><Link href={`/founder/reviews/${state.reviewId}`}>{state.status === "review_ready" ? "Open review" : "Open review status"}</Link></div> : null}
 
       <div className="editor-layout">
         <aside className="editor-nav"><p>Profile sections</p>{sections.map(([id, label], index) => <a href={`#${id}`} key={id}><span>{String(index + 1).padStart(2, "0")}</span>{label}</a>)}<hr /><div><strong>Publication gate</strong><span>Submit fields complete</span><span>Content score must reach 50/90</span></div></aside>
-        <form action={formAction} className="profile-form" onChange={markDirty}>
+        <form action={formAction} className="profile-form" onChange={markDirty} ref={formRef}>
           <input name="expected_version" type="hidden" value={version} readOnly />
           <fieldset disabled={workspace.loadError || pending}>
             <section id="basics" className="form-section"><div className="form-section-heading"><span>01</span><div><h2>Basics</h2><p>The five fields required for the first private save.</p></div></div><div className="form-grid two-col">
