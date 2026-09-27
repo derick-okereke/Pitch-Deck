@@ -1,0 +1,14 @@
+.accountMenu { position: relative; }
+.accountMenu summary { list-style: none; cursor: pointer; }
+.accountMenu summary::-webkit-details-marker { display: none; }
+.accountMenu[open] summary svg { transform: rotate(180deg); }
+.menuPanel { position: absolute; z-index: 30; top: calc(100% + 10px); right: 0; width: 240px; padding: 18px; color: #151922; background: white; border: 1px solid #d9dee7; box-shadow: 0 14px 36px rgba(17, 24, 39, .12); }
+.menuPanel strong, .menuPanel span, .menuPanel small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.menuPanel strong { font-size: 13px; }
+.menuPanel span { margin-top: 5px; color: #4e5b6d; font-size: 11px; }
+.menuPanel small { margin-top: 3px; color: #788395; font-size: 10px; }
+.menuPanel form { margin-top: 16px; padding-top: 14px; border-top: 1px solid #e2e6ec; }
+.menuPanel button { width: 100%; min-height: 38px; display: flex; align-items: center; gap: 9px; padding: 0; color: #151922; background: transparent; border: 0; cursor: pointer; font: inherit; font-size: 11px; font-weight: 700; text-align: left; }
+.menuPanel button:hover { color: #1f58e7; }
+.menuPanel button:focus-visible, .accountMenu summary:focus-visible { outline: 2px solid #255ee8; outline-offset: 3px; }
+@media (max-width: 780px) { .menuPanel { position: fixed; top: 72px; right: 16px; } }

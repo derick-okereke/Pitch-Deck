@@ -1,0 +1,5 @@
+name = "pitch-deck"
+domainChoice = "pxxl.pro"
+environment = "production"
+deployEnvironment = "prod"
+port = 3000
