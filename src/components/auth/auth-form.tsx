@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useRef } from "react";
-import { ArrowRight, LoaderCircle } from "lucide-react";
+import { useActionState, useId, useRef, useState } from "react";
+import { ArrowRight, Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { requestPasswordReset, signIn, signUp, updatePassword, type AuthFormState } from "@/app/auth/actions";
 import { useFormRecovery } from "@/hooks/use-form-recovery";
 
@@ -21,6 +21,55 @@ function SubmitButton({ pending, children }: { pending: boolean; children: React
   return <button className="button button-dark auth-submit" type="submit" disabled={pending}>{pending ? <LoaderCircle className="auth-spinner" size={16} /> : null}{children}<ArrowRight size={16} /></button>;
 }
 
+function PasswordField({
+  label,
+  autoComplete,
+  errors,
+  showRequirements = false,
+  mentionPasswordManagers = false,
+}: {
+  label: string;
+  autoComplete: "current-password" | "new-password";
+  errors?: string[];
+  showRequirements?: boolean;
+  mentionPasswordManagers?: boolean;
+}) {
+  const [visible, setVisible] = useState(false);
+  const inputId = useId();
+  const hintId = `${inputId}-hint`;
+  const errorId = `${inputId}-error`;
+  const describedBy = [showRequirements ? hintId : null, errors?.[0] ? errorId : null].filter(Boolean).join(" ") || undefined;
+
+  return <label htmlFor={inputId}>
+    <span>{label}</span>
+    <span className="auth-password-control">
+      <input
+        id={inputId}
+        name="password"
+        type={visible ? "text" : "password"}
+        autoComplete={autoComplete}
+        minLength={showRequirements ? 8 : undefined}
+        maxLength={128}
+        pattern={showRequirements ? "(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,128}" : undefined}
+        aria-describedby={describedBy}
+        aria-invalid={errors?.[0] ? true : undefined}
+        required
+      />
+      <button
+        type="button"
+        className="auth-password-toggle"
+        aria-label={visible ? "Hide password" : "Show password"}
+        aria-pressed={visible}
+        onClick={() => setVisible((current) => !current)}
+      >
+        {visible ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+      </button>
+    </span>
+    {showRequirements ? <small id={hintId} className="auth-password-hint">Use 8–128 characters with a capital letter, number, and special character.{mentionPasswordManagers ? " Password managers and paste are supported." : ""}</small> : null}
+    {errors?.[0] ? <small id={errorId} className="auth-field-error">{errors[0]}</small> : null}
+  </label>;
+}
+
 export function SignUpForm({ defaultRole, next }: { defaultRole: "founder" | "investor"; next?: string | null }) {
   const [state, action, pending] = useActionState(signUp, initialState);
   const formRef = useRef<HTMLFormElement>(null);
@@ -30,7 +79,7 @@ export function SignUpForm({ defaultRole, next }: { defaultRole: "founder" | "in
     <fieldset className="auth-role-choice"><legend>I am joining as</legend><label><input type="radio" name="role" value="founder" defaultChecked={defaultRole === "founder"} /><span>Founder<small>Build and practise your pitch.</small></span></label><label><input type="radio" name="role" value="investor" defaultChecked={defaultRole === "investor"} /><span>Investor<small>Discover and contact founders.</small></span></label></fieldset>
     <label><span>Name</span><input name="displayName" type="text" autoComplete="name" maxLength={80} required /><ErrorText errors={state.fieldErrors?.displayName} /></label>
     <label><span>Email</span><input name="email" type="email" autoComplete="email" maxLength={254} required /><ErrorText errors={state.fieldErrors?.email} /></label>
-    <label><span>Password</span><input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={128} pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,128}" required /><small>Use 8–128 characters with a capital letter, number, and special character. Password managers and paste are supported.</small><ErrorText errors={state.fieldErrors?.password} /></label>
+    <PasswordField label="Password" autoComplete="new-password" errors={state.fieldErrors?.password} showRequirements mentionPasswordManagers />
     {recoveredAt ? <small className="form-recovery-note" role="status">Name, email, and role recovered from this browser. Your password was not stored.</small> : null}
     <Message state={state} /><SubmitButton pending={pending}>Create account</SubmitButton>
     <p className="auth-switch">Already have an account? <Link href={next ? `/auth/sign-in?next=${encodeURIComponent(next)}` : "/auth/sign-in"}>Sign in</Link></p>
@@ -44,7 +93,7 @@ export function SignInForm({ next }: { next?: string | null }) {
   return <form className="auth-form" action={action} noValidate ref={formRef}>
     {next ? <input type="hidden" name="next" value={next} /> : null}
     <label><span>Email</span><input name="email" type="email" autoComplete="email" maxLength={254} required /><ErrorText errors={state.fieldErrors?.email} /></label>
-    <label><span>Password</span><input name="password" type="password" autoComplete="current-password" maxLength={128} required /><ErrorText errors={state.fieldErrors?.password} /></label>
+    <PasswordField label="Password" autoComplete="current-password" errors={state.fieldErrors?.password} />
     <Link className="auth-forgot" href="/auth/forgot-password">Forgot your password?</Link>
     {recoveredAt ? <small className="form-recovery-note" role="status">Your email was recovered. Passwords are never stored.</small> : null}
     <Message state={state} /><SubmitButton pending={pending}>Sign in</SubmitButton>
@@ -67,7 +116,7 @@ export function ResetRequestForm() {
 export function UpdatePasswordForm() {
   const [state, action, pending] = useActionState(updatePassword, initialState);
   return <form className="auth-form" action={action} noValidate>
-    <label><span>New password</span><input name="password" type="password" autoComplete="new-password" minLength={8} maxLength={128} pattern="(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,128}" required /><small>Use 8–128 characters with a capital letter, number, and special character.</small><ErrorText errors={state.fieldErrors?.password} /></label>
+    <PasswordField label="New password" autoComplete="new-password" errors={state.fieldErrors?.password} showRequirements />
     <Message state={state} /><SubmitButton pending={pending}>Update password</SubmitButton>
   </form>;
 }

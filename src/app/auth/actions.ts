@@ -6,6 +6,7 @@ import { z } from "zod";
 import { accountHome } from "@/lib/account";
 import { accountPasswordSchema } from "@/lib/auth-validation";
 import { postAuthDestination, safeAuthNext } from "@/lib/auth-redirect";
+import { siteUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthFormState = {
@@ -22,18 +23,6 @@ const signUpSchema = z.object({
   role: z.enum(["founder", "investor"]),
 });
 const signInSchema = z.object({ email, password: z.string().min(1, "Enter your password.").max(128) });
-
-function baseUrl(headerStore: Awaited<ReturnType<typeof headers>>) {
-  const forwardedHost = headerStore.get("x-forwarded-host")?.split(",")[0]?.trim();
-  const host = forwardedHost || headerStore.get("host");
-  const forwardedProto = headerStore.get("x-forwarded-proto")?.split(",")[0]?.trim();
-  if (host && !host.startsWith("localhost") && !host.startsWith("127.0.0.1")) {
-    return `${forwardedProto || "https"}://${host}`;
-  }
-  const origin = headerStore.get("origin");
-  if (origin) return origin.replace(/\/$/, "");
-  return process.env.APP_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:3000";
-}
 
 function errors(error: z.ZodError): AuthFormState {
   return { message: "Check the highlighted fields and try again.", fieldErrors: error.flatten().fieldErrors };
@@ -55,7 +44,7 @@ export async function signUp(_state: AuthFormState, formData: FormData): Promise
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      emailRedirectTo: `${baseUrl(headerStore)}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
+      emailRedirectTo: `${siteUrl(headerStore)}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
       data: { display_name: parsed.data.displayName, role: parsed.data.role },
     },
   });
@@ -91,7 +80,7 @@ export async function requestPasswordReset(_state: AuthFormState, formData: Form
   const headerStore = await headers();
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(parsed.data, {
-    redirectTo: `${baseUrl(headerStore)}/auth/callback?next=/auth/update-password`,
+    redirectTo: `${siteUrl(headerStore)}/auth/callback?next=/auth/update-password`,
   });
   return { success: true, message: "If an account exists for that email, a reset link is on its way." };
 }
