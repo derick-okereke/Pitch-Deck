@@ -11,6 +11,7 @@ const navigation = [
   ["Overview", "/founder"],
   ["Profile", "/founder/profile/edit"],
   ["Practice", "/simulator/new"],
+  ["Inbox", "/inbox"],
 ] as const;
 
 function initials(name: string) {
@@ -25,7 +26,7 @@ export function FounderShell({ children, account }: { children: React.ReactNode;
         <Link className="wordmark" href="/">Pitch Deck<span className="wordmark-dot" aria-hidden="true" /></Link>
         <nav aria-label="Founder workspace">
           {navigation.map(([label, href]) => {
-            const active = pathname === href || (href === "/simulator/new" && pathname.startsWith("/simulator/"));
+            const active = pathname === href || (href === "/simulator/new" && pathname.startsWith("/simulator/")) || (href === "/inbox" && pathname.startsWith("/inbox/"));
             return <Link aria-current={active ? "page" : undefined} className={active ? "active" : ""} href={href} key={href}>{label}</Link>;
           })}
         </nav>

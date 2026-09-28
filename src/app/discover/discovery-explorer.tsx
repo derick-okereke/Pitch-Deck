@@ -27,7 +27,6 @@ export function DiscoveryExplorer({ filters, result, loadError, accountName }: {
   const [query, setQuery] = useState(filters.q);
   const timer = useRef<number | null>(null);
   useEffect(() => () => { if (timer.current !== null) window.clearTimeout(timer.current); }, []);
-  useEffect(() => setQuery(filters.q), [filters.q]);
 
   const updateQuery = (value: string) => {
     setQuery(value);

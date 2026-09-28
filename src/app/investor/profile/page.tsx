@@ -15,7 +15,7 @@ export default async function InvestorProfilePage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <Link className={styles.wordmark} href="/">Pitch Deck<span aria-hidden="true" /></Link>
-        <nav aria-label="Investor workspace"><Link href="/discover">Discovery</Link><Link aria-current="page" href="/investor/profile">Investment profile</Link></nav>
+        <nav aria-label="Investor workspace"><Link href="/discover">Discovery</Link><Link href="/inbox">Inbox</Link><Link aria-current="page" href="/investor/profile">Investment profile</Link></nav>
         <div className={styles.account}><span>{account?.displayName}</span><form action={signOut}><button type="submit">Sign out</button></form></div>
       </header>
       <div className={styles.titleRow}>

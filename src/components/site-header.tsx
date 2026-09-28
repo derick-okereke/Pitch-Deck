@@ -21,6 +21,7 @@ export function SiteHeader({ workspaceHref, workspaceLabel = "Open workspace" }:
           <Link href="/#how-it-works">How it works</Link>
           <Link href="/#for-founders">For founders</Link>
           <Link href="/discover">For investors</Link>
+          {workspaceHref ? <Link href="/inbox">Inbox</Link> : null}
         </nav>
         <div className="desktop-actions">
           {workspaceHref ? <><form action={signOut} className="site-signout"><button type="submit">Sign out</button></form><Link className="button button-dark button-small" href={workspaceHref}>{workspaceLabel}</Link></> : <>
@@ -44,6 +45,7 @@ export function SiteHeader({ workspaceHref, workspaceLabel = "Open workspace" }:
           <Link onClick={() => setOpen(false)} href="/#how-it-works">How it works</Link>
           <Link onClick={() => setOpen(false)} href="/#for-founders">For founders</Link>
           <Link onClick={() => setOpen(false)} href="/discover">For investors</Link>
+          {workspaceHref ? <Link onClick={() => setOpen(false)} href="/inbox">Inbox</Link> : null}
           {workspaceHref ? <><Link onClick={() => setOpen(false)} className="button button-dark" href={workspaceHref}>{workspaceLabel}</Link><form action={signOut} className="site-signout"><button type="submit">Sign out</button></form></> : <>
             <Link onClick={() => setOpen(false)} href="/auth/sign-up">Create account</Link>
             <Link onClick={() => setOpen(false)} className="button button-dark" href="/auth/sign-in">Sign in</Link>

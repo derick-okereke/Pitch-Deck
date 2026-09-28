@@ -25,5 +25,5 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
   let result: DiscoveryResult = { items: [], total: 0, page: 1, pageSize: 12, pageCount: 0 };
   let loadError = false;
   try { result = await getDiscovery(filters); } catch { loadError = true; }
-  return <DiscoveryExplorer filters={filters} result={result} loadError={loadError} accountName={access.account.displayName} />;
+  return <DiscoveryExplorer key={`${filters.q}:${filters.sector}:${filters.stage}:${filters.page}`} filters={filters} result={result} loadError={loadError} accountName={access.account.displayName} />;
 }

@@ -4,7 +4,9 @@ import { ArrowLeft, AudioLines, CircleCheck, Info, LockKeyhole, MapPin, ShieldCh
 import { z } from "zod";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { IntroRequestPanel } from "@/components/intro-request-panel";
 import { startups } from "@/data/startups";
+import { getIntroState } from "@/lib/conversation-data";
 import { getInvestorAccess, getStartupDetail } from "@/lib/marketplace-data";
 import { profileCategoryWeights, type ProfileCategoryKey } from "@/lib/profile-review";
 
@@ -24,6 +26,7 @@ export default async function StartupPage({ params }: { params: Promise<{ slug: 
   const fixture = startups.find((item) => item.slug === slug);
   const stored = fixture ? null : await getStartupDetail(slug);
   if (!fixture && !stored) notFound();
+  const introState = stored ? await getIntroState(stored.id) : { existingConversationId: null, canRequest: false };
 
   const profile = stored?.profile;
   const name = fixture?.name ?? stored!.name;
@@ -79,8 +82,8 @@ export default async function StartupPage({ params }: { params: Promise<{ slug: 
         </div>
         <aside className="intro-card">
           <h2>Start a private introduction.</h2>
-          <p>Introduction requests will open an in-app conversation immediately, without exposing either party’s contact details.</p>
-          <button type="button" className="button button-dark" disabled>Introduction requests are next</button>
+          <p>A thoughtful note opens an in-app conversation immediately, without exposing either party’s contact details.</p>
+          <IntroRequestPanel startupId={stored?.id ?? slug} startupName={name} existingConversationId={introState.existingConversationId} canRequest={introState.canRequest} illustrative={Boolean(fixture)} />
           <ul><li><LockKeyhole size={15} /> Contact details stay private</li><li><CircleCheck size={15} /> Founders will always reply for free</li></ul><hr />
           <div className="audio-preview"><AudioLines size={20} /><div><strong>Founder pitch recording</strong><span>{stored ? "No public recording selected" : "Illustrative preview unavailable"}</span></div></div>
         </aside>

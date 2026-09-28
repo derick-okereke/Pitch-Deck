@@ -46,6 +46,76 @@ export type Database = {
         Update: Partial<Omit<Database["public"]["Tables"]["investor_profiles"]["Row"], "user_id" | "created_at" | "updated_at" | "domain_signal">>;
         Relationships: [];
       };
+      demo_entitlements: {
+        Row: {
+          account_id: string;
+          role: "founder" | "investor";
+          tier: string;
+          expires_at: string;
+          granted_by: string;
+          reason: string;
+          created_at: string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["demo_entitlements"]["Row"], "created_at">;
+        Update: Partial<Omit<Database["public"]["Tables"]["demo_entitlements"]["Row"], "account_id" | "created_at">>;
+        Relationships: [];
+      };
+      conversations: {
+        Row: {
+          id: string;
+          investor_id: string;
+          startup_id: string;
+          founder_id: string;
+          next_sequence: number;
+          created_at: string;
+          last_message_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      messages: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          sender_id: string;
+          client_message_id: string;
+          sequence: number;
+          body: string;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      conversation_reads: {
+        Row: { conversation_id: string; user_id: string; last_read_sequence: number; updated_at: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      conversation_blocks: {
+        Row: { conversation_id: string; blocker_id: string; created_at: string };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      intro_request_events: {
+        Row: {
+          id: string;
+          event_key: string;
+          event_type: "intro_requested" | "intro_responded";
+          actor_id: string | null;
+          conversation_id: string;
+          occurred_at: string;
+          created_at: string;
+          schema_version: string;
+          is_demo: boolean;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       startups: {
         Row: {
           id: string;
@@ -346,6 +416,34 @@ export type Database = {
       fail_simulator_stage: {
         Args: { p_session_id: string; p_expected_state: Database["public"]["Enums"]["simulator_session_state"]; p_error_code: string };
         Returns: number | null;
+      };
+      create_intro_request: {
+        Args: {
+          p_investor_id: string;
+          p_startup_id: string;
+          p_body: string;
+          p_client_message_id: string;
+          p_demo_mode: boolean;
+        };
+        Returns: Array<{ conversation_id: string; created: boolean }>;
+      };
+      send_conversation_message: {
+        Args: { p_sender_id: string; p_conversation_id: string; p_body: string; p_client_message_id: string };
+        Returns: Array<{
+          message_id: string;
+          message_sequence: number;
+          message_body: string;
+          message_created_at: string;
+          reused: boolean;
+        }>;
+      };
+      set_conversation_read: {
+        Args: { p_user_id: string; p_conversation_id: string; p_last_read_sequence: number };
+        Returns: number;
+      };
+      set_conversation_block: {
+        Args: { p_user_id: string; p_conversation_id: string; p_blocked: boolean };
+        Returns: boolean;
       };
     };
     Enums: {
