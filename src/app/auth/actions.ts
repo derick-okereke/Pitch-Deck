@@ -1,12 +1,11 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { accountHome } from "@/lib/account";
 import { accountPasswordSchema } from "@/lib/auth-validation";
 import { postAuthDestination, safeAuthNext } from "@/lib/auth-redirect";
-import { siteUrl } from "@/lib/site-url";
+import { authEmailRedirectOrigin } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthFormState = {
@@ -38,13 +37,12 @@ export async function signUp(_state: AuthFormState, formData: FormData): Promise
   });
   if (!parsed.success) return errors(parsed.error);
 
-  const headerStore = await headers();
   const supabase = await createClient();
   const { error: signUpError } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      emailRedirectTo: `${siteUrl(headerStore)}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
+      emailRedirectTo: `${authEmailRedirectOrigin()}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
       data: { display_name: parsed.data.displayName, role: parsed.data.role },
     },
   });
@@ -77,10 +75,9 @@ export async function requestPasswordReset(_state: AuthFormState, formData: Form
   const parsed = email.safeParse(formData.get("email"));
   if (!parsed.success) return { message: "Enter a valid email address.", fieldErrors: { email: [parsed.error.issues[0].message] } };
 
-  const headerStore = await headers();
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(parsed.data, {
-    redirectTo: `${siteUrl(headerStore)}/auth/callback?next=/auth/update-password`,
+    redirectTo: `${authEmailRedirectOrigin()}/auth/callback?next=/auth/update-password`,
   });
   return { success: true, message: "If an account exists for that email, a reset link is on its way." };
 }
