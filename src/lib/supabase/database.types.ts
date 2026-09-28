@@ -60,6 +60,17 @@ export type Database = {
         Update: Partial<Omit<Database["public"]["Tables"]["demo_entitlements"]["Row"], "account_id" | "created_at">>;
         Relationships: [];
       };
+      investor_detail_views: {
+        Row: {
+          investor_id: string;
+          startup_id: string;
+          view_month: string;
+          first_viewed_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       conversations: {
         Row: {
           id: string;
@@ -426,6 +437,22 @@ export type Database = {
           p_demo_mode: boolean;
         };
         Returns: Array<{ conversation_id: string; created: boolean }>;
+      };
+      reserve_investor_detail_view: {
+        Args: {
+          p_investor_id: string;
+          p_startup_id: string;
+          p_demo_mode: boolean;
+          p_limit?: number;
+        };
+        Returns: Array<{
+          allowed: boolean;
+          consumed: boolean;
+          used_count: number;
+          view_limit: number;
+          reset_at: string;
+          demo_pro: boolean;
+        }>;
       };
       send_conversation_message: {
         Args: { p_sender_id: string; p_conversation_id: string; p_body: string; p_client_message_id: string };

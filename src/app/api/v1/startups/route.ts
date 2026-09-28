@@ -11,14 +11,21 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const parsed = discoveryFilterSchema.safeParse({
     q: url.searchParams.get("q") ?? "",
-    sector: url.searchParams.get("sector") ?? "",
-    stage: url.searchParams.get("stage") ?? "",
+    sectors: url.searchParams.getAll("sector"),
+    stages: url.searchParams.getAll("stage"),
+    countries: url.searchParams.getAll("country"),
+    ask_currency: url.searchParams.get("ask_currency") ?? "",
+    ask_min: url.searchParams.get("ask_min") ?? "",
+    ask_max: url.searchParams.get("ask_max") ?? "",
+    minimum_score: url.searchParams.get("minimum_score") ?? "",
+    verified_only: url.searchParams.get("verified_only") ?? "",
     page: url.searchParams.get("page") ?? "1",
   });
   if (!parsed.success) return apiError("FILTERS_INVALID", "One or more discovery filters are invalid.", 422);
   try {
     return apiSuccess(await getDiscovery(parsed.data));
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === "INVESTOR_PRO_REQUIRED") return apiError("INVESTOR_PRO_REQUIRED", "Investor Pro is required for these filters.", 403);
     return apiError("DISCOVERY_UNAVAILABLE", "Discovery could not be loaded. Try again.", 503, true);
   }
 }

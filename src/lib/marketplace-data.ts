@@ -6,7 +6,7 @@ import { founderDraftSchema, type FounderDraft } from "@/lib/profile";
 import { sectorLabels, stageLabels } from "@/lib/investor-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import type { DiscoveryCard, DiscoveryFilters, DiscoveryResult } from "@/lib/marketplace";
+import { hasProDiscoveryFilters, matchesDiscoveryFilters, type DiscoveryCard, type DiscoveryFilters, type DiscoveryResult } from "@/lib/marketplace";
 
 export const getInvestorAccess = cache(async () => {
   const account = await getCurrentAccount();
@@ -14,9 +14,14 @@ export const getInvestorAccess = cache(async () => {
   if (!account.organizationName) return { status: "onboarding" as const, account, profile: null };
   if (account.role !== "investor") return { status: "wrong_role" as const, account, profile: null };
   const supabase = await createClient();
-  const { data: profile, error } = await supabase.from("investor_profiles").select("user_id, sectors, stages, countries").eq("user_id", account.id).maybeSingle();
+  const admin = createAdminClient();
+  const [{ data: profile, error }, { data: entitlement }] = await Promise.all([
+    supabase.from("investor_profiles").select("user_id, sectors, stages, countries").eq("user_id", account.id).maybeSingle(),
+    admin.from("demo_entitlements").select("expires_at").eq("account_id", account.id).eq("role", "investor").eq("tier", "pro").gt("expires_at", new Date().toISOString()).maybeSingle(),
+  ]);
   if (error || !profile) return { status: "profile_required" as const, account, profile: null };
-  return { status: "ready" as const, account, profile };
+  const demoPro = process.env.DEMO_MODE === "true" && Boolean(entitlement);
+  return { status: "ready" as const, account, profile, demoPro, demoProExpiresAt: demoPro ? entitlement?.expires_at ?? null : null };
 });
 
 function formatMoney(minor: string, currency: "NGN" | "USD") {
@@ -76,13 +81,13 @@ async function publishedRows() {
 }
 
 export async function getDiscovery(filters: DiscoveryFilters): Promise<DiscoveryResult> {
+  const access = await getInvestorAccess();
+  if (access.status !== "ready") throw new Error("INVESTOR_PROFILE_REQUIRED");
+  if (hasProDiscoveryFilters(filters) && !access.demoPro) throw new Error("INVESTOR_PRO_REQUIRED");
   const rows = await publishedRows();
-  const query = filters.q.toLocaleLowerCase();
-  const filtered = rows.filter(({ profile }) => {
+  const filtered = rows.filter(({ profile, card }) => {
     const searchable = `${profile.name} ${profile.tagline} ${profile.problem} ${profile.solution}`.toLocaleLowerCase();
-    return (!query || searchable.includes(query))
-      && (!filters.sector || profile.sector === filters.sector)
-      && (!filters.stage || profile.stage === filters.stage);
+    return matchesDiscoveryFilters({ searchableText: searchable, sector: profile.sector, stage: profile.stage, country: profile.country, askCurrency: profile.ask_currency, askMinor: profile.ask_amount_minor, score: card.score, verified: card.verified }, filters);
   }).sort((a, b) => b.card.score - a.card.score
     || Date.parse(b.review.completed_at ?? b.revision.created_at) - Date.parse(a.review.completed_at ?? a.revision.created_at)
     || a.startup.id.localeCompare(b.startup.id));
@@ -94,13 +99,25 @@ export async function getDiscovery(filters: DiscoveryFilters): Promise<Discovery
 }
 
 export async function getStartupDetail(id: string) {
+  const access = await getInvestorAccess();
+  if (access.status !== "ready") return { status: "not_found" as const };
   const rows = await publishedRows();
   const match = rows.find((row) => row.startup.id === id);
-  if (!match) return null;
-  return {
+  if (!match) return { status: "not_found" as const };
+  const admin = createAdminClient();
+  const { data: reservation, error } = await admin.rpc("reserve_investor_detail_view", {
+    p_investor_id: access.account.id,
+    p_startup_id: id,
+    p_demo_mode: process.env.DEMO_MODE === "true",
+    p_limit: 20,
+  });
+  if (error || !reservation?.[0]) throw new Error("DETAIL_VIEW_UNAVAILABLE");
+  const usage = reservation[0];
+  if (!usage.allowed) return { status: "limit_reached" as const, usage };
+  return { status: "ok" as const, usage, detail: {
     ...match.card,
     profile: match.profile,
     reviewedAt: match.review.completed_at ?? match.revision.created_at,
     ratings: match.review.ratings,
-  };
+  } };
 }

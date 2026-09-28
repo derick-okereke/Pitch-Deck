@@ -24,7 +24,13 @@ export default async function StartupPage({ params }: { params: Promise<{ slug: 
 
   const { slug } = await params;
   const fixture = startups.find((item) => item.slug === slug);
-  const stored = fixture ? null : await getStartupDetail(slug);
+  const storedResult = fixture ? null : await getStartupDetail(slug);
+  if (!fixture && storedResult?.status === "not_found") notFound();
+  if (!fixture && storedResult?.status === "limit_reached") {
+    const reset = new Intl.DateTimeFormat("en-GB", { dateStyle: "long", timeZone: "UTC" }).format(new Date(storedResult.usage.reset_at));
+    return <div className="page-canvas"><div className="page-shell"><section className="app-panel startup-detail-panel"><SiteHeader workspaceHref="/discover" workspaceLabel="Investor workspace" /><Link className="back-link" href="/discover"><ArrowLeft size={16} /> Back to discovery</Link><div className="detail-limit-state"><LockKeyhole size={25} /><h1>Your monthly profile allowance is complete.</h1><p>You have opened {storedResult.usage.used_count} distinct startup profiles this month. Profiles you already viewed remain available; new profiles reopen on {reset}.</p><div><Link className="button button-dark" href="/discover">Return to discovery</Link><span>Investor Pro preview · unlimited profile views</span></div></div></section><SiteFooter /></div></div>;
+  }
+  const stored = storedResult?.status === "ok" ? storedResult.detail : null;
   if (!fixture && !stored) notFound();
   const introState = stored ? await getIntroState(stored.id) : { existingConversationId: null, canRequest: false };
 
