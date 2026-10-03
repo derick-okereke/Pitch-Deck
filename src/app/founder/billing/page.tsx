@@ -45,6 +45,10 @@ export default async function FounderBillingPage({ searchParams }: { searchParam
             <li><Check size={16} /> No advertised monthly practice cap</li>
             <li><Check size={16} /> New Pro sessions can contribute delivery points</li>
             <li><Check size={16} /> Eligible results can earn the verified badge</li>
+            <li><Check size={16} /> See which investor viewed your profile, and from where</li>
+            <li><Check size={16} /> Priority / boosted placement</li>
+            <li><Check size={16} /> Exportable, polished pitch deck (PDF)</li>
+            <li><Check size={16} /> You can set a scored session as the public pitch recording.</li>
           </ul>
           {billing.active && billing.paidThrough ? (
             <div className="billing-period"><ShieldCheck size={18} /><div><strong>Verified through {date(billing.paidThrough)}</strong><span>{billing.cancelAtPeriodEnd ? "Cancellation scheduled at period end." : "Sandbox subscription verified by Bachs."}</span></div></div>
