@@ -1,9 +1,11 @@
 import { SimulatorSetupLive } from "@/components/simulator/simulator-setup-live";
+import { getFounderBillingOverview } from "@/lib/billing";
 import { getFounderWorkspace } from "@/lib/founder-profile";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function NewSimulatorSessionPage() {
   const workspace = await getFounderWorkspace();
+  const billing = await getFounderBillingOverview(workspace.ownerId);
   const supabase = await createClient();
   const [{ data: reservations }, { data: sessions }, { data: reports, error: reportsError }] = await Promise.all([
     supabase.from("usage_reservations").select("state, expires_at"),
@@ -21,6 +23,7 @@ export default async function NewSimulatorSessionPage() {
       activeSession={active}
       draftVersion={workspace.draftVersion}
       expiredSession={expiredSession}
+      isPro={billing.active}
       remainingFree={Math.max(0, 3 - used)}
       recentReports={reports ?? []}
       reportsUnavailable={Boolean(reportsError)}

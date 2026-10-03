@@ -10,10 +10,11 @@ import { useAudioCapture } from "@/hooks/use-audio-capture";
 type ActiveSession = { id: string; state: string; state_version: number; expires_at: string };
 type RecentReport = { session_id: string; session_points: number; created_at: string };
 
-export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession, remainingFree, recentReports, reportsUnavailable, startupId, workspaceUnavailable }: {
+export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession, isPro, remainingFree, recentReports, reportsUnavailable, startupId, workspaceUnavailable }: {
   activeSession: ActiveSession | null;
   draftVersion: number;
   expiredSession: boolean;
+  isPro: boolean;
   remainingFree: number;
   recentReports: RecentReport[];
   reportsUnavailable: boolean;
@@ -26,7 +27,7 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
-  const ready = mic.state === "ready" && consent && Boolean(startupId) && remainingFree > 0 && !workspaceUnavailable;
+  const ready = mic.state === "ready" && consent && Boolean(startupId) && (isPro || remainingFree > 0) && !workspaceUnavailable;
   const resumeSession = () => {
     if (!activeSession || mic.state !== "ready" || !consent) return;
     if (Date.parse(activeSession.expires_at) <= Date.now()) {
@@ -65,7 +66,11 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
         <Link className="back-link" href="/founder"><ArrowLeft size={15} /> Founder overview</Link>
         <div className="simulator-heading-grid">
           <div><h1>Prepare the room before you pitch.</h1><p>A focused practice with two follow-up questions from two different panel members. Check your microphone, understand how the recording is processed, then begin when you are ready.</p></div>
-          <div className="session-allowance"><strong>{remainingFree}</strong><span>free learning session{remainingFree === 1 ? "" : "s"} available</span><small>Lifetime allowance · reserved only after the panel is ready</small></div>
+          {isPro ? (
+            <div className="session-allowance"><strong>∞</strong><span>Founder Pro practice is active</span><small>No advertised monthly practice cap · eligible results can contribute delivery points</small></div>
+          ) : (
+            <div className="session-allowance"><strong>{remainingFree}</strong><span>free learning session{remainingFree === 1 ? "" : "s"} available</span><small>Lifetime allowance · reserved only after the panel is ready</small></div>
+          )}
         </div>
       </div>
 
@@ -102,8 +107,8 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
           {(mic.state === "denied" || mic.state === "unsupported" || mic.state === "error") && <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>Microphone is not ready</strong><p>{mic.message}</p></div></div>}
           {workspaceUnavailable ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>Profile storage is unavailable</strong><p>Apply the latest Supabase migrations, then reload this page before starting practice.</p></div></div> : null}
           {!startupId && !workspaceUnavailable ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>Create a founder profile first</strong><p>Practice snapshots the current draft so later feedback remains tied to the words you rehearsed.</p></div></div> : null}
-          {startError ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>The room did not open</strong><p>{startError} Your free allowance was not consumed.</p></div></div> : null}
-          {expiredSession && !activeSession ? <div className="session-resume" role="status"><div><strong>Your previous session expired</strong><p>Check your microphone and consent again to begin a new session. The expired reservation does not use a free session.</p></div></div> : null}
+          {startError ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>The room did not open</strong><p>{startError} {isPro ? "No practice session was started." : "Your free allowance was not consumed."}</p></div></div> : null}
+          {expiredSession && !activeSession ? <div className="session-resume" role="status"><div><strong>Your previous session expired</strong><p>{isPro ? "Check your microphone and consent again to begin a new scored session." : "Check your microphone and consent again to begin a new session. The expired reservation does not use a free session."}</p></div></div> : null}
           {activeSession ? <div className="session-resume" role="status"><div><strong>Practice already in progress</strong><p>Resume the saved {activeSession.state.replaceAll("_", " ")} session after checking your microphone and confirming recording consent again.</p></div><button className="button button-light" type="button" disabled={mic.state !== "ready" || !consent} onClick={resumeSession}>Resume session <ArrowRight size={16} /></button></div> : null}
 
           <label className="recording-consent">
@@ -113,7 +118,7 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
 
           <div className="setup-actions">
             <div><Headphones size={17} /><span>Headphones recommended for the spoken questions.</span></div>
-            {activeSession ? null : <button className="button button-dark" type="button" disabled={!ready || starting} onClick={() => void enterSession()}>{starting ? "Preparing your panel…" : ready ? <>Enter the pitch room <ArrowRight size={16} /></> : remainingFree === 0 ? "Free sessions used" : "Complete readiness first"}</button>}
+            {activeSession ? null : <button className="button button-dark" type="button" disabled={!ready || starting} onClick={() => void enterSession()}>{starting ? "Preparing your panel…" : ready ? <>Enter the pitch room <ArrowRight size={16} /></> : !isPro && remainingFree === 0 ? "Free sessions used" : "Complete readiness first"}</button>}
           </div>
         </section>
 
