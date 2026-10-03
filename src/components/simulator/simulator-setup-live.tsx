@@ -3,17 +3,20 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, AudioLines, Check, CircleAlert, Headphones, Mic2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ArrowRight, AudioLines, Check, CircleAlert, FileText, Headphones, Mic2, ShieldCheck } from "lucide-react";
 import { simulatorPersonas } from "@/data/simulator-demo";
 import { useAudioCapture } from "@/hooks/use-audio-capture";
 
 type ActiveSession = { id: string; state: string; state_version: number; expires_at: string };
+type RecentReport = { session_id: string; session_points: number; created_at: string };
 
-export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession, remainingFree, startupId, workspaceUnavailable }: {
+export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession, remainingFree, recentReports, reportsUnavailable, startupId, workspaceUnavailable }: {
   activeSession: ActiveSession | null;
   draftVersion: number;
   expiredSession: boolean;
   remainingFree: number;
+  recentReports: RecentReport[];
+  reportsUnavailable: boolean;
   startupId: string | null;
   workspaceUnavailable: boolean;
 }) {
@@ -70,6 +73,22 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
         <ShieldCheck size={20} />
         <div><strong>Provider-connected practice</strong><p>Your profile snapshot, recordings, transcripts, session state, and scored report persist across refresh.</p></div>
         <span>Private session</span>
+      </section>
+
+      <section className="practice-results" aria-labelledby="practice-results-title">
+        <div className="practice-results-heading">
+          <div><h2 id="practice-results-title">Your results</h2><p>Return to your private coaching reports at any time.</p></div>
+          <Link className="practice-results-all" href="/simulator/history">View all results <ArrowRight size={16} /></Link>
+        </div>
+        {reportsUnavailable ? <p className="practice-results-status" role="status">Reports could not load. Refresh this page to try again.</p> : recentReports.length ? (
+          <ol className="practice-results-list">
+            {recentReports.map((report) => <li key={report.session_id}>
+              <FileText size={19} aria-hidden="true" />
+              <div><strong>Pitch practice report</strong><span>{new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(report.created_at))} · {Math.round(report.session_points)}/100 session score</span></div>
+              <Link href={`/simulator/${report.session_id}/report`}>Review result <ArrowRight size={16} /></Link>
+            </li>)}
+          </ol>
+        ) : <p className="practice-results-status">Your completed practice reports will appear here.</p>}
       </section>
 
       <div className="simulator-setup-grid">
