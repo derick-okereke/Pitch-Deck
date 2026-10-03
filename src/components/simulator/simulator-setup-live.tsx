@@ -7,11 +7,12 @@ import { ArrowLeft, ArrowRight, AudioLines, Check, CircleAlert, Headphones, Mic2
 import { simulatorPersonas } from "@/data/simulator-demo";
 import { useAudioCapture } from "@/hooks/use-audio-capture";
 
-type ActiveSession = { id: string; state: string; state_version: number };
+type ActiveSession = { id: string; state: string; state_version: number; expires_at: string };
 
-export function SimulatorSetupLive({ activeSession, draftVersion, remainingFree, startupId, workspaceUnavailable }: {
+export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession, remainingFree, startupId, workspaceUnavailable }: {
   activeSession: ActiveSession | null;
   draftVersion: number;
+  expiredSession: boolean;
   remainingFree: number;
   startupId: string | null;
   workspaceUnavailable: boolean;
@@ -23,6 +24,17 @@ export function SimulatorSetupLive({ activeSession, draftVersion, remainingFree,
   const [startError, setStartError] = useState<string | null>(null);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const ready = mic.state === "ready" && consent && Boolean(startupId) && remainingFree > 0 && !workspaceUnavailable;
+  const resumeSession = () => {
+    if (!activeSession || mic.state !== "ready" || !consent) return;
+    if (Date.parse(activeSession.expires_at) <= Date.now()) {
+      setStartError("This session has expired. Reload setup to begin a new one.");
+      router.refresh();
+      return;
+    }
+    window.sessionStorage.setItem("pitch-deck-simulator-consent-at", String(Date.now()));
+    mic.release();
+    router.push(`/simulator/${activeSession.id}`);
+  };
   const enterSession = async () => {
     if (!ready || !startupId) return;
     setStarting(true);
@@ -72,7 +84,8 @@ export function SimulatorSetupLive({ activeSession, draftVersion, remainingFree,
           {workspaceUnavailable ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>Profile storage is unavailable</strong><p>Apply the latest Supabase migrations, then reload this page before starting practice.</p></div></div> : null}
           {!startupId && !workspaceUnavailable ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>Create a founder profile first</strong><p>Practice snapshots the current draft so later feedback remains tied to the words you rehearsed.</p></div></div> : null}
           {startError ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>The room did not open</strong><p>{startError} Your free allowance was not consumed.</p></div></div> : null}
-          {activeSession ? <div className="session-resume" role="status"><div><strong>Practice already in progress</strong><p>Resume the saved {activeSession.state.replaceAll("_", " ")} session instead of reserving another free slot.</p></div><Link className="button button-light" href={`/simulator/${activeSession.id}`}>Resume session <ArrowRight size={16} /></Link></div> : null}
+          {expiredSession && !activeSession ? <div className="session-resume" role="status"><div><strong>Your previous session expired</strong><p>Check your microphone and consent again to begin a new session. The expired reservation does not use a free session.</p></div></div> : null}
+          {activeSession ? <div className="session-resume" role="status"><div><strong>Practice already in progress</strong><p>Resume the saved {activeSession.state.replaceAll("_", " ")} session after checking your microphone and confirming recording consent again.</p></div><button className="button button-light" type="button" disabled={mic.state !== "ready" || !consent} onClick={resumeSession}>Resume session <ArrowRight size={16} /></button></div> : null}
 
           <label className="recording-consent">
             <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
