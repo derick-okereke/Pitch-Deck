@@ -12,13 +12,14 @@ const navigation = [
   ["Profile", "/founder/profile/edit"],
   ["Practice", "/simulator/new"],
   ["Inbox", "/inbox"],
+  ["Plan", "/founder/billing"],
 ] as const;
 
 function initials(name: string) {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "PD";
 }
 
-export function FounderShell({ children, account }: { children: React.ReactNode; account: CurrentAccount }) {
+export function FounderShell({ children, account, pro = false }: { children: React.ReactNode; account: CurrentAccount; pro?: boolean }) {
   const pathname = usePathname();
   return (
     <div className="founder-app">
@@ -26,12 +27,12 @@ export function FounderShell({ children, account }: { children: React.ReactNode;
         <Link className="wordmark" href="/">Pitch Deck<span className="wordmark-dot" aria-hidden="true" /></Link>
         <nav aria-label="Founder workspace">
           {navigation.map(([label, href]) => {
-            const active = pathname === href || (href === "/simulator/new" && pathname.startsWith("/simulator/")) || (href === "/inbox" && pathname.startsWith("/inbox/"));
+            const active = pathname === href || (href === "/simulator/new" && pathname.startsWith("/simulator/")) || (href === "/inbox" && pathname.startsWith("/inbox/")) || (href === "/founder/billing" && pathname.startsWith("/founder/billing/"));
             return <Link aria-current={active ? "page" : undefined} className={active ? "active" : ""} href={href} key={href}>{label}</Link>;
           })}
         </nav>
         <div className="founder-account">
-          <span className="plan-tag">Free plan</span>
+          <Link className="plan-tag" href="/founder/billing">{pro ? "Founder Pro" : "Free plan"}</Link>
           <button aria-label="Notifications" type="button"><Bell size={17} /></button>
           <details className={styles.accountMenu}>
             <summary aria-label="Open account menu" className="account-button">

@@ -18,3 +18,7 @@ export function authEmailRedirectOrigin(environment: SiteUrlEnvironment = proces
   // runtimes expose their internal localhost origin to server actions.
   return cleanOrigin(environment.AUTH_EMAIL_REDIRECT_ORIGIN) || PRODUCTION_SITE_URL;
 }
+
+export function applicationOrigin(environment: SiteUrlEnvironment = process.env) {
+  return cleanOrigin(environment.APP_BASE_URL) || PRODUCTION_SITE_URL;
+}

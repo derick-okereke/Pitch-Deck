@@ -864,3 +864,44 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .founder-voice-avatar { flex-basis: 44px; height: 44px; }
   .founder-voice-signal { display: none; }
 }
+
+/* Phase 5 — sandbox billing */
+.billing-page { min-height: calc(100vh - 72px); background: #f4f4f4; }
+.billing-intro { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 64px; align-items: end; padding: 68px 48px 54px; background: white; border-bottom: 1px solid var(--line); }
+.billing-intro h1 { max-width: 760px; margin: 0; font-size: clamp(38px, 5vw, 64px); line-height: 1; letter-spacing: -.045em; font-weight: 680; }
+.billing-intro > div:first-child > p:last-child { max-width: 720px; margin: 24px 0 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
+.billing-status { display: flex; align-items: center; gap: 14px; padding: 22px 0 0; border-top: 1px solid var(--line); }
+.billing-status > svg { color: var(--blue); }.billing-status-active > svg { color: #177245; }
+.billing-status span, .billing-status strong { display: block; }.billing-status span { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }.billing-status strong { margin-top: 4px; font-size: 15px; }
+.billing-notice { display: flex; gap: 10px 18px; align-items: baseline; padding: 16px 48px; color: #775311; background: #fff8e8; border-bottom: 1px solid #ead7aa; font-size: 12px; }.billing-notice span { color: #8e6a29; }
+.billing-plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; padding: 1px 0; background: var(--line); }
+.billing-plan-card { min-height: 520px; padding: 48px; background: white; }
+.billing-plan-pro { background: #111; color: white; }
+.billing-plan-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding-bottom: 32px; border-bottom: 1px solid var(--line); }
+.billing-plan-pro .billing-plan-heading { border-color: rgba(255,255,255,.14); }
+.billing-plan-heading p { margin: 0 0 18px; color: var(--muted); font-size: 11px; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }.billing-plan-pro .billing-plan-heading p { color: rgba(255,255,255,.5); }
+.billing-plan-heading h2 { margin: 0; font-size: 48px; line-height: .9; letter-spacing: -.04em; }.billing-plan-heading h2 span { font-size: 12px; letter-spacing: .01em; }
+.billing-plan-heading div > span { display: block; margin-top: 14px; color: var(--muted); font-size: 11px; }.billing-plan-pro .billing-plan-heading div > span { color: rgba(255,255,255,.46); }
+.billing-plan-heading small { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px; color: var(--blue); background: var(--blue-soft); border: 1px solid #cbd9ff; font-size: 9px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+.billing-plan-pro .billing-plan-heading small { color: #b9cffd; background: rgba(60,110,220,.13); border-color: rgba(110,151,238,.28); }
+.billing-plan-card ul { display: grid; gap: 16px; margin: 32px 0; padding: 0; list-style: none; }.billing-plan-card li { display: flex; align-items: center; gap: 10px; color: #424b58; font-size: 13px; }.billing-plan-pro li { color: rgba(255,255,255,.72); }.billing-plan-card li svg { flex: none; color: var(--blue); }
+.billing-plan-note { max-width: 480px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+.billing-upgrade-action { margin-top: 38px; }.billing-upgrade-action .button { min-width: 265px; background: white; color: #111; border-color: white; }.billing-upgrade-action .button:hover { background: #e9edf5; }.billing-upgrade-action .button:disabled { cursor: wait; opacity: .72; transform: none; }
+.billing-action-error { display: flex; gap: 8px; align-items: flex-start; max-width: 460px; margin: 16px 0 0; color: #ffb4b4; font-size: 11px; line-height: 1.5; }.billing-action-error svg { flex: none; }
+.billing-period { display: flex; align-items: flex-start; gap: 12px; margin-top: 38px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.14); }.billing-period > svg { flex: none; color: #8eb0ff; }.billing-period strong, .billing-period span { display: block; }.billing-period strong { font-size: 13px; }.billing-period span { margin-top: 5px; color: rgba(255,255,255,.48); font-size: 11px; }
+.billing-disclosure { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; padding: 28px 48px 34px; background: #eef3ff; border-top: 1px solid #cfdbf8; }.billing-disclosure > svg { color: var(--blue); }.billing-disclosure strong { font-size: 12px; }.billing-disclosure p { max-width: 850px; margin: 5px 0 0; color: #5e6f8f; font-size: 11px; line-height: 1.6; }
+.billing-return-page { min-height: calc(100vh - 72px); display: grid; place-items: center; padding: 48px 24px; background: #111; color: white; }
+.return-state { width: min(680px, 100%); padding: 52px; background: #171717; border: 1px solid rgba(255,255,255,.12); }.return-state > svg { color: #8eb0ff; }.return-state .eyebrow { margin-top: 32px; color: rgba(255,255,255,.42); }.return-state h1 { margin: 0; font-size: clamp(38px, 6vw, 64px); line-height: 1; letter-spacing: -.045em; }.return-state > p:not(.eyebrow) { max-width: 560px; margin: 22px 0 30px; color: rgba(255,255,255,.56); line-height: 1.7; }.return-state .button-light { color: #111; }.return-state .inline-link { color: #9db9ff; }.return-success > svg { color: #6fd29b; }
+.spin { animation: billing-spin 900ms linear infinite; }
+@keyframes billing-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 780px) {
+  .billing-intro { grid-template-columns: 1fr; gap: 38px; padding: 42px 22px; }.billing-intro h1 { font-size: 43px; }
+  .billing-notice { align-items: flex-start; flex-direction: column; padding-inline: 22px; }
+  .billing-plan-grid { grid-template-columns: 1fr; }.billing-plan-card { min-height: 0; padding: 38px 22px; }.billing-plan-heading { gap: 12px; }.billing-plan-heading h2 { font-size: 42px; }
+  .billing-upgrade-action .button { width: 100%; min-width: 0; }
+  .billing-disclosure { padding-inline: 22px; }
+  .return-state { padding: 38px 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }

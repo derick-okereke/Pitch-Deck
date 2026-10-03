@@ -1,13 +1,17 @@
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { accountHome, getCurrentAccount } from "@/lib/account";
 import { createClient } from "@/lib/supabase/server";
+import { getFounderBillingOverview } from "@/lib/billing";
 
 export async function GET() {
   const account = await getCurrentAccount();
   if (!account) return apiError("AUTH_REQUIRED", "Sign in to open your workspace.", 401);
 
   let remainingFree: number | null = null;
+  let tier: "free" | "pro" = "free";
   if (account.role === "founder") {
+    const billing = await getFounderBillingOverview(account.id);
+    tier = billing.active ? "pro" : "free";
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("usage_reservations")
@@ -23,7 +27,7 @@ export async function GET() {
     organization_name: account.organizationName,
     onboarding_complete: Boolean(account.organizationName),
     home_path: account.organizationName ? accountHome(account) : "/onboarding",
-    tier: "free" as const,
+    tier,
     remaining_free: remainingFree,
     unread_count: 0,
   });

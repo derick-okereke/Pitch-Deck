@@ -60,6 +60,82 @@ export type Database = {
         Update: Partial<Omit<Database["public"]["Tables"]["demo_entitlements"]["Row"], "account_id" | "created_at">>;
         Relationships: [];
       };
+      billing_checkout_attempts: {
+        Row: {
+          id: string;
+          account_id: string;
+          idempotency_key: string;
+          reference: string;
+          provider_checkout_id: string | null;
+          provider_customer_id: string | null;
+          provider_subscription_id: string | null;
+          state: Database["public"]["Enums"]["billing_checkout_state"];
+          environment: "sandbox";
+          product_id: string;
+          currency: "USD";
+          amount_minor: number;
+          checkout_url: string | null;
+          expires_at: string | null;
+          error_code: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["billing_checkout_attempts"]["Row"], "provider_checkout_id" | "provider_customer_id" | "provider_subscription_id" | "checkout_url" | "expires_at" | "error_code" | "created_at" | "updated_at"> & {
+          provider_checkout_id?: string | null;
+          provider_customer_id?: string | null;
+          provider_subscription_id?: string | null;
+          checkout_url?: string | null;
+          expires_at?: string | null;
+          error_code?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Omit<Database["public"]["Tables"]["billing_checkout_attempts"]["Row"], "id" | "account_id" | "idempotency_key" | "reference" | "environment" | "product_id" | "currency" | "amount_minor" | "created_at">>;
+        Relationships: [];
+      };
+      billing_subscriptions: {
+        Row: {
+          account_id: string;
+          provider_subscription_id: string;
+          provider_customer_id: string;
+          source_checkout_id: string;
+          environment: "sandbox";
+          product_id: string;
+          currency: "USD";
+          amount_minor: number;
+          status: Database["public"]["Enums"]["billing_subscription_state"];
+          current_period_start: string | null;
+          current_period_end: string;
+          cancel_at_period_end: boolean;
+          revoked_at: string | null;
+          verified_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      billing_webhook_receipts: {
+        Row: {
+          provider_event_id: string;
+          event_type: string;
+          environment: "sandbox";
+          payload_hash: string;
+          state: Database["public"]["Enums"]["billing_webhook_state"];
+          error_code: string | null;
+          received_at: string;
+          processed_at: string | null;
+        };
+        Insert: Omit<Database["public"]["Tables"]["billing_webhook_receipts"]["Row"], "state" | "error_code" | "received_at" | "processed_at"> & {
+          state?: Database["public"]["Enums"]["billing_webhook_state"];
+          error_code?: string | null;
+          received_at?: string;
+          processed_at?: string | null;
+        };
+        Update: Partial<Pick<Database["public"]["Tables"]["billing_webhook_receipts"]["Row"], "state" | "error_code" | "processed_at">>;
+        Relationships: [];
+      };
       investor_detail_views: {
         Row: {
           investor_id: string;
@@ -472,6 +548,37 @@ export type Database = {
         Args: { p_user_id: string; p_conversation_id: string; p_blocked: boolean };
         Returns: boolean;
       };
+      founder_has_active_pro: {
+        Args: { p_account_id: string };
+        Returns: boolean;
+      };
+      activate_bachs_founder_subscription: {
+        Args: {
+          p_event_id: string;
+          p_checkout_id: string;
+          p_customer_id: string;
+          p_subscription_id: string;
+          p_product_id: string;
+          p_currency: string;
+          p_amount_minor: number;
+          p_status: Database["public"]["Enums"]["billing_subscription_state"];
+          p_period_start: string | null;
+          p_period_end: string;
+          p_cancel_at_period_end: boolean;
+        };
+        Returns: string;
+      };
+      update_bachs_founder_subscription: {
+        Args: {
+          p_event_id: string;
+          p_subscription_id: string;
+          p_status: Database["public"]["Enums"]["billing_subscription_state"];
+          p_period_start: string | null;
+          p_period_end: string;
+          p_cancel_at_period_end: boolean;
+        };
+        Returns: string;
+      };
     };
     Enums: {
       account_role: "founder" | "investor";
@@ -486,6 +593,9 @@ export type Database = {
       simulator_voice_style: "warm-rigorous" | "direct-analytical" | "calm-strategic";
       usage_reservation_state: "reserved" | "consumed" | "released";
       simulator_segment_kind: "pitch" | "answer";
+      billing_checkout_state: "creating" | "open" | "pending_verification" | "completed" | "expired" | "cancelled" | "failed";
+      billing_subscription_state: "pending" | "active" | "past_due" | "unpaid" | "cancelled" | "expired";
+      billing_webhook_state: "received" | "processed" | "ignored" | "quarantined" | "failed";
     };
     CompositeTypes: Record<string, never>;
   };
