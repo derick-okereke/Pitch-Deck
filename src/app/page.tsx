@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowDown, ArrowRight, AudioLines, CircleCheck, Compass, LineChart, Mic2, ShieldCheck } from "lucide-react";
-import { PitchSignal } from "@/components/pitch-signal";
+import { HeroImageLoop } from "@/components/hero-image-loop";
 import { PathwayInfographic } from "@/components/pathway-infographic";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -51,7 +51,7 @@ export default async function Home() {
               </div>
               <p className="hero-note">Built for founders from idea to growth · Free practice available</p>
             </div>
-            <PitchSignal />
+            <HeroImageLoop />
           </div>
           <a className="scroll-cue" href="#how-it-works">See the full loop <ArrowDown size={15} /></a>
         </section>

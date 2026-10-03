@@ -1,24 +1,24 @@
-.locked { display: grid; grid-template-columns: auto 1fr; gap: 10px; padding: 15px 0; color: #4f5967; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 10px; line-height: 1.55; }
+.locked { display: grid; grid-template-columns: auto 1fr; gap: 10px; padding: 15px 0; color: #4f5967; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 12px; line-height: 1.55; }
 .locked svg { margin-top: 2px; color: var(--blue); }
 .locked strong, .locked span { display: block; }
-.locked strong { margin-bottom: 3px; color: var(--ink); font-size: 11px; }
+.locked strong { margin-bottom: 3px; color: var(--ink); font-size: 13px; }
 .dialog { width: min(620px, calc(100vw - 30px)); max-height: min(760px, calc(100vh - 30px)); padding: 0; color: var(--ink); background: white; border: 0; border-radius: 16px; box-shadow: 0 24px 80px rgba(17, 17, 17, .22); }
 .dialog::backdrop { background: rgba(10, 14, 22, .62); }
 .dialogHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding: 30px 32px 24px; border-bottom: 1px solid var(--line); }
-.dialogHeader span { color: var(--blue); font-size: 10px; font-weight: 720; }
+.dialogHeader span { color: var(--blue); font-size: 12px; font-weight: 720; }
 .dialogHeader h2 { margin: 8px 0 0; font-size: 31px; line-height: 1.05; letter-spacing: -.03em; }
 .dialogHeader button { width: 44px; height: 44px; display: grid; place-items: center; flex: none; margin: -8px -8px 0 0; color: var(--muted); background: transparent; border: 1px solid transparent; border-radius: 10px; cursor: pointer; }
 .dialogHeader button:hover { color: var(--ink); background: #f2f3f5; }
-.explainer { max-width: 68ch; margin: 0; padding: 22px 32px 0; color: var(--muted); font-size: 12px; line-height: 1.65; }
+.explainer { max-width: 68ch; margin: 0; padding: 22px 32px 0; color: var(--muted); font-size: 14px; line-height: 1.65; }
 .noteField { display: block; padding: 24px 32px 0; }
-.noteField > span { display: block; margin-bottom: 9px; font-size: 11px; font-weight: 700; }
-.noteField textarea { width: 100%; min-height: 180px; padding: 14px; color: var(--ink); background: #fbfcfd; border: 1px solid #cbd1da; border-radius: 0; resize: vertical; font: inherit; font-size: 13px; line-height: 1.65; caret-color: var(--blue); }
+.noteField > span { display: block; margin-bottom: 9px; font-size: 13px; font-weight: 700; }
+.noteField textarea { width: 100%; min-height: 180px; padding: 14px; color: var(--ink); background: #fbfcfd; border: 1px solid #cbd1da; border-radius: 0; resize: vertical; font: inherit; font-size: 15px; line-height: 1.65; caret-color: var(--blue); }
 .noteField textarea:focus { border-color: var(--blue); outline: 3px solid rgba(29, 78, 216, .12); outline-offset: 0; }
 .noteField textarea::placeholder { color: #7a828e; }
-.noteMeta { display: flex; justify-content: space-between; gap: 18px; padding: 8px 32px 0; color: #69717d; font-size: 9px; font-variant-numeric: tabular-nums; }
+.noteMeta { display: flex; justify-content: space-between; gap: 18px; padding: 8px 32px 0; color: #69717d; font-size: 11px; font-variant-numeric: tabular-nums; }
 .dialogActions { display: flex; justify-content: flex-end; gap: 10px; padding: 28px 32px 0; }
 .dialogActions button:disabled { cursor: wait; opacity: .66; transform: none; }
-.error, .saved { min-height: 52px; display: flex; align-items: flex-start; gap: 8px; margin: 22px 0 0; padding: 15px 32px 17px; border-top: 1px solid var(--line); font-size: 10px; line-height: 1.5; }
+.error, .saved { min-height: 52px; display: flex; align-items: flex-start; gap: 8px; margin: 22px 0 0; padding: 15px 32px 17px; border-top: 1px solid var(--line); font-size: 12px; line-height: 1.5; }
 .error { color: #8c1d25; background: #fff4f4; }
 .error svg { flex: none; }
 .saved { color: #5c6571; background: #f7f8fa; }

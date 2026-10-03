@@ -1,0 +1,47 @@
+.stage {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  height: clamp(430px, 35vw, 560px);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  filter: blur(0);
+  transition: opacity 420ms ease, filter 420ms ease;
+}
+
+.frame[data-revealed="false"] { opacity: 0; filter: blur(7px); }
+
+.artwork {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  width: 82%;
+  height: 92%;
+  min-width: 0;
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center;
+  transform: translate(-50%, -55%);
+}
+
+@media (max-width: 1100px) {
+  .stage { height: clamp(380px, 56vw, 540px); }
+}
+
+@media (max-width: 720px) {
+  .stage { height: min(75vw, 390px); min-height: 280px; }
+  .artwork { width: 85%; height: 94%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frame { transition: none; }
+}

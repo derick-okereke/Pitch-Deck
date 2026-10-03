@@ -3,24 +3,24 @@
 .wordmark { width: fit-content; color: white; text-decoration: none; font-size: 20px; font-weight: 750; letter-spacing: -.03em; }
 .wordmark span { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: #3f75ff; }
 .intro > div { max-width: 660px; }
-.intro > div > p:first-child { margin: 0 0 22px; color: #9fb0c7; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.intro > div > p:first-child { margin: 0 0 22px; color: #9fb0c7; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .intro h1 { max-width: 620px; margin: 0; font-size: clamp(45px, 6vw, 82px); line-height: .96; letter-spacing: -.04em; text-wrap: balance; }
 .intro h1 + p { max-width: 590px; margin: 28px 0 0; color: #b7c3d3; font-size: 16px; line-height: 1.72; }
-.intro ul { display: flex; flex-wrap: wrap; gap: 16px 28px; margin: 0; padding: 0; list-style: none; color: #c6d0de; font-size: 12px; }
+.intro ul { display: flex; flex-wrap: wrap; gap: 16px 28px; margin: 0; padding: 0; list-style: none; color: #c6d0de; font-size: 14px; }
 .intro li { display: inline-flex; align-items: center; gap: 8px; }
 .intro li svg { color: #7da2ff; }
 .panel { display: grid; align-content: center; gap: 48px; padding: clamp(32px, 7vw, 96px); background: white; }
-.panel > div > span { color: #5b6a7e; font-size: 11px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+.panel > div > span { color: #5b6a7e; font-size: 13px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
 .panel h2 { margin: 12px 0 0; font-size: clamp(32px, 4vw, 52px); line-height: 1; letter-spacing: -.035em; }
-.panel h2 + p { max-width: 52ch; margin: 16px 0 0; color: #667085; font-size: 14px; line-height: 1.65; }
+.panel h2 + p { max-width: 52ch; margin: 16px 0 0; color: #667085; font-size: 16px; line-height: 1.65; }
 .form { display: grid; gap: 24px; }
-.form label { display: grid; gap: 9px; color: #202735; font-size: 12px; font-weight: 700; }
+.form label { display: grid; gap: 9px; color: #202735; font-size: 14px; font-weight: 700; }
 .form input { min-height: 52px; width: 100%; padding: 0 15px; border: 1px solid #cbd2dd; border-radius: 0; color: #111827; background: white; font: inherit; font-size: 15px; font-weight: 500; outline: none; }
 .form input:focus { border-color: #255ee8; box-shadow: 0 0 0 3px rgba(37, 94, 232, .14); }
-.form label > small { color: #667085; font-size: 11px; font-weight: 500; line-height: 1.5; }
+.form label > small { color: #667085; font-size: 13px; font-weight: 500; line-height: 1.5; }
 .form .error, .message { color: #9f2323; }
-.message { margin: 0; font-size: 12px; line-height: 1.5; }
-.recovered { margin: -6px 0 0; color: #526b86; font-size: 11px; line-height: 1.5; }
+.message { margin: 0; font-size: 14px; line-height: 1.5; }
+.recovered { margin: -6px 0 0; color: #526b86; font-size: 13px; line-height: 1.5; }
 .form button { min-height: 52px; width: 100%; justify-content: center; }
 .spinner { animation: spin 850ms linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
