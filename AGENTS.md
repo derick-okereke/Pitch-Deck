@@ -11,3 +11,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Project workflow preferences
 
 - Run UI detector checks only for substantial UI changes or when explicitly requested. Skip them for backend, configuration, documentation, Git-only, and small UI tasks to conserve credits.
+- Push completed, verified code changes to `origin/main` without asking for separate approval, unless the user requests a different delivery path. Do not push unfinished or unrelated changes.
+- Do not check or monitor Pxxl builds after a push. The user will verify deployment to conserve credits.
