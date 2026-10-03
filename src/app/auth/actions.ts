@@ -6,6 +6,7 @@ import { accountHome } from "@/lib/account";
 import { accountPasswordSchema } from "@/lib/auth-validation";
 import { postAuthDestination, safeAuthNext } from "@/lib/auth-redirect";
 import { authEmailRedirectOrigin } from "@/lib/site-url";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthFormState = {
@@ -37,9 +38,18 @@ export async function signUp(_state: AuthFormState, formData: FormData): Promise
   });
   if (!parsed.success) return errors(parsed.error);
 
+  const normalizedEmail = parsed.data.email.toLowerCase();
+  const { data: confirmedEmailExists, error: lookupError } = await createAdminClient()
+    .rpc("confirmed_signup_email_exists", { p_email: normalizedEmail });
+  if (lookupError) return { message: "We could not check that email right now. Please try again." };
+  if (confirmedEmailExists) return {
+    message: "That email already has a confirmed account. Sign in instead, or use a different email for a new account.",
+    fieldErrors: { email: ["This email is already in use."] },
+  };
+
   const supabase = await createClient();
-  const { error: signUpError } = await supabase.auth.signUp({
-    email: parsed.data.email,
+  const { data, error: signUpError } = await supabase.auth.signUp({
+    email: normalizedEmail,
     password: parsed.data.password,
     options: {
       emailRedirectTo: `${authEmailRedirectOrigin()}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
@@ -47,8 +57,12 @@ export async function signUp(_state: AuthFormState, formData: FormData): Promise
     },
   });
 
-  if (signUpError) return { message: "We could not create that account. Check your details or try signing in." };
-  const checkEmailQuery = new URLSearchParams({ email: parsed.data.email });
+  if (signUpError?.code === "user_already_exists" || data.user?.identities?.length === 0) return {
+    message: "That email already has an account. Sign in instead, or use a different email for a new account.",
+    fieldErrors: { email: ["This email is already in use."] },
+  };
+  if (signUpError || !data.user) return { message: "We could not create that account. Check your details or try signing in." };
+  const checkEmailQuery = new URLSearchParams({ email: normalizedEmail });
   if (next) checkEmailQuery.set("next", next);
   redirect(`/auth/check-email?${checkEmailQuery.toString()}`);
 }
@@ -68,6 +82,9 @@ export async function signIn(_state: AuthFormState, formData: FormData): Promise
     .eq("id", data.user.id)
     .maybeSingle();
   if (!account) return { message: "Your account workspace is still being prepared. Try again shortly." };
+  if ((next === "/discover" || next === "/investor/profile") && account.role !== "investor") return {
+    message: "This is a founder account. Sign in with an investor account to explore startups.",
+  };
   redirect(postAuthDestination({ role: account.role, organizationName: account.organization_name }, next));
 }
 

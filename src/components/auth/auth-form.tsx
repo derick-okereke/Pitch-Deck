@@ -82,11 +82,11 @@ export function SignUpForm({ defaultRole, next }: { defaultRole: "founder" | "in
     <PasswordField label="Password" autoComplete="new-password" errors={state.fieldErrors?.password} showRequirements mentionPasswordManagers />
     {recoveredAt ? <small className="form-recovery-note" role="status">Name, email, and role recovered from this browser. Your password was not stored.</small> : null}
     <Message state={state} /><SubmitButton pending={pending}>Create account</SubmitButton>
-    <p className="auth-switch">Already have an account? <Link href={next ? `/auth/sign-in?next=${encodeURIComponent(next)}` : "/auth/sign-in"}>Sign in</Link></p>
+    <p className="auth-switch">Already have an account? <Link href={next ? `/auth/sign-in?${defaultRole === "investor" ? "role=investor&" : ""}next=${encodeURIComponent(next)}` : "/auth/sign-in"}>Sign in</Link></p>
   </form>;
 }
 
-export function SignInForm({ next }: { next?: string | null }) {
+export function SignInForm({ next, role }: { next?: string | null; role?: "investor" }) {
   const [state, action, pending] = useActionState(signIn, initialState);
   const formRef = useRef<HTMLFormElement>(null);
   const { recoveredAt } = useFormRecovery({ formRef, storageKey: "pitch-deck:auth:sign-in" });
@@ -97,7 +97,7 @@ export function SignInForm({ next }: { next?: string | null }) {
     <Link className="auth-forgot" href="/auth/forgot-password">Forgot your password?</Link>
     {recoveredAt ? <small className="form-recovery-note" role="status">Your email was recovered. Passwords are never stored.</small> : null}
     <Message state={state} /><SubmitButton pending={pending}>Sign in</SubmitButton>
-    <p className="auth-switch">New to Pitch Deck? <Link href={next ? `/auth/sign-up?role=founder&next=${encodeURIComponent(next)}` : "/auth/sign-up"}>Create an account</Link></p>
+    <p className="auth-switch">New to Pitch Deck? <Link href={next ? `/auth/sign-up?role=${role ?? "founder"}&next=${encodeURIComponent(next)}` : "/auth/sign-up"}>Create an account</Link></p>
   </form>;
 }
 

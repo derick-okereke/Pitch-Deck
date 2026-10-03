@@ -170,7 +170,7 @@ export function InboxShell({ account, conversations, detail, loadError }: {
 
   return <div className="page-canvas"><div className="page-shell">
     <section className="app-panel">
-      <SiteHeader workspaceHref={account.role === "founder" ? "/founder" : "/discover"} workspaceLabel={account.role === "founder" ? "Founder dashboard" : "Investor workspace"} />
+      <SiteHeader investorHref={account.role === "founder" ? "/auth/sign-in?role=investor&next=/discover" : "/discover"} workspaceHref={account.role === "founder" ? "/founder" : "/discover"} workspaceLabel={account.role === "founder" ? "Founder dashboard" : "Investor workspace"} />
       <div className={styles.heading}><div><h1>Private conversations, with context intact.</h1><p>Introductions stay attached to the startup that opened them. Direct contact details remain private unless someone chooses to share them in a message.</p></div><div><ShieldCheck size={18} /><span><strong>Participant-only</strong>Only the founder and requesting investor can read this correspondence.</span></div></div>
     </section>
     <main className={`${styles.workspace} ${detail ? styles.hasDetail : ""}`}>

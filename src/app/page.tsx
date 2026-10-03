@@ -17,15 +17,15 @@ export default async function Home() {
     ? account.role === "founder" && account.organizationName ? "/simulator/new" : workspaceHref ?? "/onboarding"
     : "/auth/sign-in?next=/simulator/new";
   const investorHref = account
-    ? account.role === "investor" && account.organizationName ? "/discover" : workspaceHref ?? "/onboarding"
-    : "/auth/sign-in?next=/discover";
+    ? account.role === "investor" ? account.organizationName ? "/discover" : "/onboarding" : "/auth/sign-in?role=investor&next=/discover"
+    : "/auth/sign-in?role=investor&next=/discover";
   const workspaceLabel = account?.role === "investor" ? "Investor workspace" : "Founder dashboard";
 
   return (
     <div className="page-canvas home-page">
       <div className="page-shell">
         <section className="hero-panel">
-          <SiteHeader workspaceHref={workspaceHref} workspaceLabel={workspaceLabel} />
+          <SiteHeader investorHref={investorHref} workspaceHref={workspaceHref} workspaceLabel={workspaceLabel} />
           <div className="hero-grid">
             <div className="hero-copy">
               <p className="eyebrow"><span aria-hidden="true" /> Practice meets discovery</p>

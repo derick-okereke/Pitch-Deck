@@ -11,8 +11,8 @@ import { hasProDiscoveryFilters, matchesDiscoveryFilters, type DiscoveryCard, ty
 export const getInvestorAccess = cache(async () => {
   const account = await getCurrentAccount();
   if (!account) return { status: "anonymous" as const, account: null, profile: null };
-  if (!account.organizationName) return { status: "onboarding" as const, account, profile: null };
   if (account.role !== "investor") return { status: "wrong_role" as const, account, profile: null };
+  if (!account.organizationName) return { status: "onboarding" as const, account, profile: null };
   const supabase = await createClient();
   const admin = createAdminClient();
   const [{ data: profile, error }, { data: entitlement }] = await Promise.all([

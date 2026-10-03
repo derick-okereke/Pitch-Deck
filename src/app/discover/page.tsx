@@ -14,7 +14,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
   const access = await getInvestorAccess();
   if (access.status === "anonymous") redirect("/auth/sign-in?next=/discover");
   if (access.status === "onboarding") redirect("/onboarding");
-  if (access.status === "wrong_role") redirect("/founder");
+  if (access.status === "wrong_role") redirect("/auth/sign-in?role=investor&next=/discover");
   if (access.status === "profile_required") redirect("/investor/profile?setup=1");
 
   const params = await searchParams;

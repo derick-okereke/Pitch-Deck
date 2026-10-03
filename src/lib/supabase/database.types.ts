@@ -368,6 +368,10 @@ export type Database = {
     };
     Views: Record<string, never>;
     Functions: {
+      confirmed_signup_email_exists: {
+        Args: { p_email: string };
+        Returns: boolean;
+      };
       save_founder_draft: {
         Args: { p_founder_id: string; p_expected_version: number; p_payload: Json };
         Returns: Array<{ startup_id: string; draft_version: number; saved_at: string }>;

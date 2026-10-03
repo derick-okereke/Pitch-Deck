@@ -5,7 +5,8 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "@/app/auth/actions";
 
-export function SiteHeader({ workspaceHref, workspaceLabel = "Open workspace" }: {
+export function SiteHeader({ investorHref = "/discover", workspaceHref, workspaceLabel = "Open workspace" }: {
+  investorHref?: string;
   workspaceHref?: string | null;
   workspaceLabel?: string;
 }) {
@@ -20,7 +21,7 @@ export function SiteHeader({ workspaceHref, workspaceLabel = "Open workspace" }:
         <nav className="desktop-nav" aria-label="Primary navigation">
           <Link href="/#how-it-works">How it works</Link>
           <Link href="/#for-founders">For founders</Link>
-          <Link href="/discover">For investors</Link>
+          <Link href={investorHref}>For investors</Link>
           {workspaceHref ? <Link href="/inbox">Inbox</Link> : null}
         </nav>
         <div className="desktop-actions">
@@ -44,7 +45,7 @@ export function SiteHeader({ workspaceHref, workspaceLabel = "Open workspace" }:
         <nav className="mobile-nav" id="mobile-menu" aria-label="Mobile navigation">
           <Link onClick={() => setOpen(false)} href="/#how-it-works">How it works</Link>
           <Link onClick={() => setOpen(false)} href="/#for-founders">For founders</Link>
-          <Link onClick={() => setOpen(false)} href="/discover">For investors</Link>
+          <Link onClick={() => setOpen(false)} href={investorHref}>For investors</Link>
           {workspaceHref ? <Link onClick={() => setOpen(false)} href="/inbox">Inbox</Link> : null}
           {workspaceHref ? <><Link onClick={() => setOpen(false)} className="button button-dark" href={workspaceHref}>{workspaceLabel}</Link><form action={signOut} className="site-signout"><button type="submit">Sign out</button></form></> : <>
             <Link onClick={() => setOpen(false)} href="/auth/sign-up">Create account</Link>

@@ -10,8 +10,8 @@ export const metadata: Metadata = { title: "Create account" };
 export default async function SignUpPage({ searchParams }: { searchParams: Promise<{ role?: string; code?: string; next?: string }> }) {
   const { role, code, next: requested } = await searchParams;
   if (code) redirect(`/auth/callback?code=${encodeURIComponent(code)}`);
-  const next = safeAuthNext(requested);
+  const next = safeAuthNext(requested) ?? (role === "investor" ? "/discover" : null);
   const account = await getCurrentAccount();
-  if (account) redirect(postAuthDestination(account, next));
+  if (account && !(role === "investor" && account.role !== "investor")) redirect(postAuthDestination(account, next));
   return <AuthShell eyebrow="Create account" title="Choose your path." intro="Use a verified email. Your role is selected once during onboarding and controls the workspace you enter."><SignUpForm defaultRole={role === "investor" ? "investor" : "founder"} next={next} /></AuthShell>;
 }
