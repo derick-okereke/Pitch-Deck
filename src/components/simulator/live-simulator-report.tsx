@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, Check, CircleAlert, FileText, Gauge, LockKeyhole
 import { coachingResources } from "@/data/simulator-demo";
 import type { SimulatorFeedback, SimulatorPersona, SimulatorQuestion } from "@/lib/simulator";
 import { personaInitials } from "@/lib/simulator";
+import type { calculateReadiness } from "@/lib/readiness";
 
 type Recording = {
   segment_kind: "pitch" | "answer";
@@ -24,19 +25,32 @@ function duration(milliseconds: number) {
   return `${Math.floor(seconds / 60).toString().padStart(2, "0")}:${(seconds % 60).toString().padStart(2, "0")}`;
 }
 
-export function LiveSimulatorReport({ createdAt, deliveryPoints, feedback, personas, questions, recordings, sessionPoints }: {
+export function LiveSimulatorReport({ activePro, createdAt, deliveryPoints, feedback, personas, publicReadiness, questions, readiness, recordings, sessionPoints, tierAtStart }: {
+  activePro: boolean;
   createdAt: string;
   deliveryPoints: number;
   feedback: SimulatorFeedback;
   personas: SimulatorPersona[];
+  publicReadiness: number | null;
   questions: SimulatorQuestion[];
+  readiness: ReturnType<typeof calculateReadiness>;
   recordings: Recording[];
   sessionPoints: number;
+  tierAtStart: "free" | "pro";
 }) {
   const pitch = recordings.find((recording) => recording.segment_kind === "pitch")!;
   const answers = recordings.filter((recording) => recording.segment_kind === "answer").sort((a, b) => (a.question_index ?? 0) - (b.question_index ?? 0));
   const allFillerMatches = recordings.reduce((total, recording) => total + (recording.filler_matches ?? 0), 0);
   const allFillerTokens = recordings.reduce((total, recording) => total + (recording.filler_token_count ?? 0), 0);
+  const proSession = tierAtStart === "pro";
+  const publicApplied = readiness.deliveryContribution > 0 && publicReadiness !== null;
+  const impactDetail = !proSession
+    ? "This session began on the free tier. Upgrading later does not change its learning-only status."
+    : !activePro
+      ? "This session began on Pro, but an active Pro subscription is required for public delivery points."
+      : readiness.reasonMessages.length
+        ? readiness.reasonMessages.join(" ")
+        : `This session earned ${deliveryPoints}/10 for delivery.${publicReadiness !== null ? ` Your current public readiness is ${publicReadiness}/100.` : ""}`;
 
   return (
     <main className="simulator-page report-page">
@@ -44,12 +58,12 @@ export function LiveSimulatorReport({ createdAt, deliveryPoints, feedback, perso
         <Link className="back-link" href="/founder"><ArrowLeft size={15} /> Founder overview</Link>
         <div className="report-summary-grid">
           <div><span className="fixture-tag">Private AI coaching report</span><h1>Your pitch has been assessed across the full panel.</h1><p>Two investors questioned your case. All three reviewed the pitch and both answers against exact transcript evidence.</p></div>
-          <div className="session-score"><strong>{Math.round(sessionPoints)}</strong><span>/ 100 session score</span><small>Learning-only free session</small></div>
+          <div className="session-score"><strong>{Math.round(sessionPoints)}</strong><span>/ 100 session score</span><small>{proSession ? "Founder Pro session" : activePro ? "Started on Free · Pro now active" : "Learning-only free session"}</small></div>
         </div>
       </section>
 
       <section className="score-boundary" aria-label="Score contribution explanation">
-        <ShieldCheck size={19} /><div><strong>This report teaches; it does not alter your public score.</strong><p>Your delivery earned {deliveryPoints}/10 inside this session. Free-started sessions remain private and learning-only, even after a later upgrade.</p></div><span>Public score unchanged</span>
+        <ShieldCheck size={19} /><div><strong>{publicApplied ? "This Pro delivery qualifies for public readiness." : "This report does not change your public readiness."}</strong><p>{impactDetail}</p></div><span>{publicApplied ? `${readiness.deliveryContribution}/10 delivery eligible` : "Public score unchanged"}</span>
       </section>
 
       <div className="report-layout">
@@ -83,7 +97,7 @@ export function LiveSimulatorReport({ createdAt, deliveryPoints, feedback, perso
         </div>
 
         <aside className="report-sidebar">
-          <section className="readiness-impact"><div className="readiness-impact-heading"><ShieldCheck size={19} /><div><h2>Session result</h2><p>{new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(createdAt))}</p></div></div><strong className="readiness-impact-value">{deliveryPoints}<span>/10 delivery</span></strong><dl><div><dt>Session score</dt><dd>{sessionPoints}/100</dd></div><div><dt>Public contribution</dt><dd>0/10</dd></div></dl></section>
+          <section className="readiness-impact"><div className="readiness-impact-heading"><ShieldCheck size={19} /><div><h2>Session result</h2><p>{new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(createdAt))}</p></div></div><strong className="readiness-impact-value">{deliveryPoints}<span>/10 delivery</span></strong><dl><div><dt>Session score</dt><dd>{sessionPoints}/100</dd></div><div><dt>Public contribution</dt><dd>{readiness.deliveryContribution}/10</dd></div>{publicReadiness !== null ? <div><dt>Public readiness</dt><dd>{publicReadiness}/100</dd></div> : null}</dl></section>
           <section><h2>Delivery signals</h2><dl className="delivery-metrics"><div><dt><Gauge size={15} /> Pitch pace</dt><dd>{pitch.words_per_minute ?? "—"} <small>WPM</small></dd><span>Average including pauses</span></div>{answers.map((answer) => <div key={answer.question_index}><dt><Gauge size={15} /> Answer {answer.question_index} pace</dt><dd>{answer.words_per_minute ?? "—"} <small>WPM</small></dd><span>Average including pauses</span></div>)}<div><dt><MessageSquareText size={15} /> Detected fillers</dt><dd>{allFillerMatches}</dd><span>{allFillerTokens} matched transcript words</span></div></dl><p className="metric-caveat">Speech-to-text may remove hesitations. A low count is not proof that none were audible.</p></section>
           <section className="report-next-step"><h2>Practise the strongest next action</h2><p>{feedback.categories.slice().sort((a, b) => a.rating - b.rating)[0]?.next_step}</p><Link className="button button-dark" href="/simulator/new"><RotateCcw size={16} /> Start another practice</Link></section>
           <section className="private-report-note"><LockKeyhole size={18} /><h2>This report stays private</h2><p>Investors cannot see the Q&amp;A, transcripts, coaching notes, or stored audio. Publication is always a separate explicit choice.</p></section>

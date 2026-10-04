@@ -204,7 +204,7 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
       {recoveredAt ? <div className="recovery-banner" role="status"><Check size={17} /><div><strong>Unsaved work recovered from this browser.</strong><p>Review it, then save when you are ready. Passwords and uploaded files are never stored this way.</p></div><button type="button" onClick={clearRecovery}>Discard recovery copy</button></div> : null}
 
       <div className="editor-layout">
-        <aside className="editor-nav"><p>Profile sections</p>{sections.map(([id, label], index) => <a href={`#${id}`} key={id}><span>{String(index + 1).padStart(2, "0")}</span>{label}</a>)}<hr /><div><strong>Publication gate</strong><span>Submit fields complete</span><span>Content score must reach 50/90</span></div></aside>
+        <aside className="editor-nav"><p>Profile sections</p>{sections.map(([id, label], index) => <a href={`#${id}`} key={id}><span>{String(index + 1).padStart(2, "0")}</span>{label}</a>)}<hr /><div><strong>Publication gate</strong><span>Submit fields complete</span><span>At least 50 content points to publish</span><span>Total readiness includes up to 10 Pro delivery points</span></div></aside>
         <form className="profile-form" onChange={markDirty} onSubmit={submitProfile} ref={formRef}>
           <input name="expected_version" type="hidden" value={version} readOnly />
           <fieldset disabled={workspace.loadError || pending}>

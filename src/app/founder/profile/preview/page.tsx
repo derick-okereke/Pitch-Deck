@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getFounderWorkspace } from "@/lib/founder-profile";
 import { founderDraftSchema, minorToMajor } from "@/lib/profile";
 import { profileCategoryWeights } from "@/lib/profile-review";
+import { getPublishedReadiness } from "@/lib/readiness-data";
 import { createClient } from "@/lib/supabase/server";
 
 const publicRatingsSchema = z.array(z.object({
@@ -64,7 +65,10 @@ export default async function ProfilePreview({ searchParams }: { searchParams: P
 
   const ratings = publicRatingsSchema.safeParse(review?.ratings);
   const contentPoints = review?.state === "passed" && review.content_points !== null ? review.content_points : null;
-  const displayScore = contentPoints === null ? null : Math.floor(contentPoints + 0.5);
+  const readiness = showPublished && workspace.publishedRevisionId && contentPoints !== null
+    ? await getPublishedReadiness({ founderId: workspace.ownerId, startupId: workspace.startupId, revisionId: workspace.publishedRevisionId, contentPoints })
+    : null;
+  const displayScore = contentPoints === null ? null : readiness?.displayReadiness ?? Math.floor(contentPoints + 0.5);
   const location = [draft.city, countryNames[draft.country] ?? draft.country].filter(Boolean).join(", ");
   const modeLabel = showPublished ? `Published revision ${revisionNumber ?? ""}` : `Draft version ${workspace.draftVersion}`;
 
@@ -78,7 +82,7 @@ export default async function ProfilePreview({ searchParams }: { searchParams: P
       </section>
       <section className="preview-content-grid">
         <div className="preview-narrative"><article><p className="section-number">01 / THE CASE</p><h2>The problem</h2><p>{draft.problem || "Not provided in this draft."}</p><h2>The solution</h2><p>{draft.solution || "Not provided in this draft."}</p></article><article><p className="section-number">02 / MARKET EVIDENCE</p><h2>Market</h2><p>{draft.market.explanation || "No market explanation provided."}</p><h2>Traction</h2><p>{draft.traction.evidence_note || "No stage evidence provided."}</p></article><article><p className="section-number">03 / TEAM & MODEL</p><h2>Team</h2>{draft.team.length ? draft.team.map((member) => <p key={`${member.name}-${member.role}`}><strong>{member.name || "Unnamed team member"}{member.role ? ` — ${member.role}` : ""}</strong><br />{member.relevant_experience || "Relevant experience not provided."}</p>) : <p>No team evidence provided.</p>}<h2>Business model</h2><p>{draft.business_model || "Not provided in this draft."}</p><h2>Competition</h2><p>{draft.competition || "Not provided in this draft."}</p><h2>Funding ask</h2><p>{draft.use_of_funds || "Use of funds not provided."}</p></article></div>
-        <aside className="preview-evidence"><p className="preview-context">Readiness evidence</p>{ratings.success ? ratings.data.map((category) => { const weight = profileCategoryWeights[category.key]; const points = weight * category.rating / 4; return <div className="mini-score-row" key={category.key}><span>{labels[category.key]}</span><div><i style={{ width: `${category.rating / 4 * 100}%` }} /></div><strong>{points}/{weight}</strong></div>; }) : <div className="preview-no-review"><strong>No completed review</strong><p>This draft has no validated category evidence yet.</p></div>}<div className="score-disclosure"><Info size={15} /><p>AI-assessed pitch readiness; business claims are self-reported. Delivery is 0/10 until an eligible Pro session matches this published revision.</p></div><hr /><div className="audio-empty"><AudioLines size={20} /><div><strong>No public pitch recording</strong><span>The founder chooses an eligible recording explicitly.</span></div></div></aside>
+        <aside className="preview-evidence"><p className="preview-context">Readiness evidence</p>{ratings.success ? ratings.data.map((category) => { const weight = profileCategoryWeights[category.key]; const points = weight * category.rating / 4; return <div className="mini-score-row" key={category.key}><span>{labels[category.key]}</span><div><i style={{ width: `${category.rating / 4 * 100}%` }} /></div><strong>{points}/{weight}</strong></div>; }) : <div className="preview-no-review"><strong>No completed review</strong><p>This draft has no validated category evidence yet.</p></div>}<div className="score-disclosure"><Info size={15} /><p>AI-assessed pitch readiness; business claims are self-reported. Content contributes up to 90 points and eligible Pro delivery contributes up to 10. Current delivery: {readiness?.deliveryContribution ?? 0}/10.</p></div><hr /><div className="audio-empty"><AudioLines size={20} /><div><strong>No public pitch recording</strong><span>The founder chooses an eligible recording explicitly.</span></div></div></aside>
       </section>
     </main>
   );

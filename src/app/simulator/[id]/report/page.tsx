@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, AudioLines, Check, CircleAlert, Clock3, FileText, Gauge, Info, LockKeyhole, MessageSquareText, RotateCcw, ShieldCheck } from "lucide-react";
 import { ReportAudioControl } from "@/components/simulator/report-audio-control";
 import { LiveSimulatorReport } from "@/components/simulator/live-simulator-report";
+import { getCurrentAccount } from "@/lib/account";
+import { getFounderBillingOverview } from "@/lib/billing";
+import { calculateStoredSessionReadiness } from "@/lib/readiness";
+import { getPublishedReadiness } from "@/lib/readiness-data";
 import { contentScore } from "@/data/founder-demo";
 import { coachingResources, simulatorPersonas, simulatorReport, spokenCategories } from "@/data/simulator-demo";
 import { calculateReadiness } from "@/lib/readiness";
@@ -14,20 +18,42 @@ export function generateStaticParams() { return [{ id: "demo-session" }]; }
 export default async function SimulatorReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (id !== "demo-session") {
+    const account = await getCurrentAccount();
+    if (!account) notFound();
     const supabase = await createClient();
-    const { data: session } = await supabase.from("simulator_sessions").select("id, state").eq("id", id).maybeSingle();
+    const { data: session } = await supabase.from("simulator_sessions").select("id, state, startup_id, snapshot_revision_id, tier_at_start, is_fixture").eq("id", id).maybeSingle();
     if (!session || session.state !== "completed") notFound();
-    const [{ data: personas }, { data: questions }, { data: recordings }, { data: report }] = await Promise.all([
+    const [{ data: personas }, { data: questions }, { data: recordings }, { data: report }, { data: startup }, billing] = await Promise.all([
       supabase.from("simulator_personas").select("persona_key, name, title, focus, voice_style").eq("session_id", id).order("persona_key"),
       supabase.from("simulator_questions").select("question_index, persona_key, question, source_quote, focus_category").eq("session_id", id).order("question_index"),
       supabase.from("simulator_recordings").select("segment_kind, question_index, transcript, duration_ms, words_per_minute, filler_matches, filler_token_count, filler_percent").eq("session_id", id).not("accepted_at", "is", null),
       supabase.from("simulator_reports").select("categories, persona_feedback, session_points, delivery_points, created_at").eq("session_id", id).maybeSingle(),
+      supabase.from("startups").select("founder_id, published_revision_id").eq("id", session.startup_id).maybeSingle(),
+      getFounderBillingOverview(account.id),
     ]);
-    if (!personas || personas.length !== 3 || !questions || questions.length !== 2 || !recordings || recordings.length !== 3 || !report) notFound();
+    if (!personas || personas.length !== 3 || !questions || questions.length !== 2 || !recordings || recordings.length !== 3 || !report || !startup || startup.founder_id !== account.id) notFound();
     const feedback = simulatorFeedbackSchema.safeParse({ schema_version: "1", categories: report.categories, persona_feedback: report.persona_feedback });
     const parsedQuestions = questions.map((question) => simulatorQuestionSchema.safeParse(question));
     if (!feedback.success || parsedQuestions.some((question) => !question.success)) notFound();
-    return <LiveSimulatorReport createdAt={report.created_at} deliveryPoints={report.delivery_points} feedback={feedback.data} personas={personas} questions={parsedQuestions.map((question) => question.data!)} recordings={recordings} sessionPoints={report.session_points} />;
+    const { data: review } = startup.published_revision_id
+      ? await supabase.from("profile_reviews").select("content_points, state").eq("revision_id", startup.published_revision_id).eq("rubric_version", "readiness-v1").maybeSingle()
+      : { data: null };
+    const contentPoints = review?.state === "passed" ? review.content_points ?? 0 : 0;
+    const readiness = calculateStoredSessionReadiness(contentPoints, billing.active, {
+      tierAtStart: session.tier_at_start,
+      snapshotRevisionId: session.snapshot_revision_id,
+      publishedRevisionId: review?.state === "passed" ? startup.published_revision_id : null,
+      state: session.state,
+      fixture: session.is_fixture,
+      sessionPoints: report.session_points,
+      deliveryPoints: report.delivery_points,
+      feedbackValid: true,
+      recordings,
+    });
+    const publicReadiness = startup.published_revision_id && review?.state === "passed"
+      ? await getPublishedReadiness({ founderId: account.id, startupId: session.startup_id, revisionId: startup.published_revision_id, contentPoints })
+      : null;
+    return <LiveSimulatorReport activePro={billing.active} createdAt={report.created_at} deliveryPoints={report.delivery_points} feedback={feedback.data} personas={personas} publicReadiness={publicReadiness?.displayReadiness ?? null} questions={parsedQuestions.map((question) => question.data!)} readiness={readiness} recordings={recordings} sessionPoints={report.session_points} tierAtStart={session.tier_at_start} />;
   }
 
   const readiness = calculateReadiness({

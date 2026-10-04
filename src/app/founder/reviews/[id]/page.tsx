@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, CircleAlert, Clock3, FilePenLine, Info, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 import { profileCategoryWeights, type ProfileCategoryKey } from "@/lib/profile-review";
+import { getPublishedReadiness } from "@/lib/readiness-data";
 import { createClient } from "@/lib/supabase/server";
 
 const storedRatingSchema = z.array(z.object({
@@ -55,7 +56,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
 
   const { data: revision } = await supabase.from("profile_revisions").select("id, startup_id, revision_number, draft_version, created_at").eq("id", review.revision_id).maybeSingle();
   if (!revision) notFound();
-  const { data: startup } = await supabase.from("startups").select("draft_version, published_revision_id").eq("id", revision.startup_id).maybeSingle();
+  const { data: startup } = await supabase.from("startups").select("founder_id, draft_version, published_revision_id").eq("id", revision.startup_id).maybeSingle();
   if (!startup) notFound();
 
   const ratingsResult = storedRatingSchema.safeParse(review.ratings);
@@ -69,7 +70,10 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   const passed = review.state === "passed";
   const published = startup.published_revision_id === revision.id;
   const reviewedEarlierDraft = startup.draft_version !== revision.draft_version;
-  const displayScore = Math.floor(review.content_points + 0.5);
+  const readiness = published
+    ? await getPublishedReadiness({ founderId: startup.founder_id, startupId: revision.startup_id, revisionId: revision.id, contentPoints: review.content_points })
+    : null;
+  const displayScore = readiness?.displayReadiness ?? Math.floor(review.content_points + 0.5);
   const completedDate = review.completed_at ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(review.completed_at)) : "Not completed";
   const headline = !passed ? "The case needs more evidence before publication." : published ? "Your case is published in discovery." : "This revision passed and is ready to publish.";
 
@@ -77,7 +81,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
     <main className="review-page">
       <section className="review-summary">
         <Link className="back-link" href="/founder"><ArrowLeft size={15} /> Founder overview</Link>
-        <div className="review-summary-grid"><div><p className="review-context">Profile review · Revision {revision.revision_number}</p><span className={`status-tag ${published ? "status-published" : "status-reviewed"}`}>{passed ? <Check size={13} /> : <CircleAlert size={13} />}{published ? "Passed and published" : passed ? "Passed" : "Needs improvement"}</span><h1>{headline}</h1><p>{reviewedEarlierDraft ? "This result belongs to an earlier draft. Your current draft remains separate and was not overwritten." : "Every category below cites only evidence from the submitted revision. The model did not set the total or publication threshold."}</p></div><div className="review-score"><strong>{displayScore}</strong><span>content points / 90</span><small>Exact score {review.content_points} · Gate 50</small></div></div>
+        <div className="review-summary-grid"><div><p className="review-context">Profile review · Revision {revision.revision_number}</p><span className={`status-tag ${published ? "status-published" : "status-reviewed"}`}>{passed ? <Check size={13} /> : <CircleAlert size={13} />}{published ? "Passed and published" : passed ? "Passed" : "Needs improvement"}</span><h1>{headline}</h1><p>{reviewedEarlierDraft ? "This result belongs to an earlier draft. Your current draft remains separate and was not overwritten." : "Every category below cites only evidence from the submitted revision. The model did not set the total or publication threshold."}</p></div><div className="review-score"><strong>{displayScore}</strong><span>readiness points / 100</span><small>{review.content_points}/90 content · {readiness?.deliveryContribution ?? 0}/10 delivery · Publish at 50 content</small></div></div>
       </section>
       <section className="review-layout">
         <div className="review-categories">

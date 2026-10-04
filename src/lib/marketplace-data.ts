@@ -6,6 +6,7 @@ import { founderDraftSchema, type FounderDraft } from "@/lib/profile";
 import { sectorLabels, stageLabels } from "@/lib/investor-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { getPublishedReadiness } from "@/lib/readiness-data";
 import { hasProDiscoveryFilters, matchesDiscoveryFilters, type DiscoveryCard, type DiscoveryFilters, type DiscoveryResult } from "@/lib/marketplace";
 
 export const getInvestorAccess = cache(async () => {
@@ -36,7 +37,7 @@ function location(profile: FounderDraft) {
   return profile.city ? `${profile.city}, ${country}` : country;
 }
 
-function cardFrom(profile: FounderDraft, startup: { id: string; is_demo: boolean }, score: number): DiscoveryCard {
+function cardFrom(profile: FounderDraft, startup: { id: string; is_demo: boolean }, score: number, verified: boolean): DiscoveryCard {
   return {
     id: startup.id,
     name: profile.name,
@@ -46,7 +47,7 @@ function cardFrom(profile: FounderDraft, startup: { id: string; is_demo: boolean
     location: location(profile),
     ask: formatMoney(profile.ask_amount_minor, profile.ask_currency),
     score: Math.floor(score + 0.5),
-    verified: false,
+    verified,
     isDemo: startup.is_demo,
   };
 }
@@ -56,7 +57,7 @@ async function publishedRows() {
   if (access.status !== "ready") throw new Error("INVESTOR_PROFILE_REQUIRED");
   const admin = createAdminClient();
   const { data: startups, error: startupError } = await admin.from("startups")
-    .select("id, published_revision_id, is_demo, updated_at")
+    .select("id, founder_id, published_revision_id, is_demo, updated_at")
     .eq("publication_status", "published")
     .not("published_revision_id", "is", null);
   if (startupError) throw new Error("DISCOVERY_UNAVAILABLE");
@@ -71,13 +72,22 @@ async function publishedRows() {
 
   const revisionMap = new Map((revisions ?? []).map((revision) => [revision.id, revision]));
   const reviewMap = new Map((reviews ?? []).map((review) => [review.revision_id, review]));
-  return (startups ?? []).flatMap((startup) => {
+  const rows = (startups ?? []).flatMap((startup) => {
     const revision = startup.published_revision_id ? revisionMap.get(startup.published_revision_id) : null;
     const review = startup.published_revision_id ? reviewMap.get(startup.published_revision_id) : null;
     const parsed = founderDraftSchema.safeParse(revision?.payload);
     if (!revision || !review || !parsed.success || review.content_points === null) return [];
-    return [{ startup, revision, review, profile: parsed.data, card: cardFrom(parsed.data, startup, Number(review.content_points)) }];
+    return [{ startup, revision, review, profile: parsed.data }];
   });
+  return Promise.all(rows.map(async (row) => {
+    const readiness = await getPublishedReadiness({
+      founderId: row.startup.founder_id,
+      startupId: row.startup.id,
+      revisionId: row.revision.id,
+      contentPoints: Number(row.review.content_points),
+    });
+    return { ...row, card: cardFrom(row.profile, row.startup, readiness.exactReadiness, readiness.badgeEarned) };
+  }));
 }
 
 export async function getDiscovery(filters: DiscoveryFilters): Promise<DiscoveryResult> {

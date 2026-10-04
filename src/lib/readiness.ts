@@ -81,3 +81,38 @@ export function calculateReadiness(input: ReadinessInput) {
     canSelectPublicAudio: qualifying && input.activePro,
   };
 }
+
+export type StoredSessionEvidence = {
+  tierAtStart: "free" | "pro";
+  snapshotRevisionId: string;
+  publishedRevisionId: string | null;
+  state: string;
+  fixture: boolean;
+  sessionPoints: number;
+  deliveryPoints: number;
+  feedbackValid: boolean;
+  recordings: { segment_kind: string; question_index: number | null; transcript: string | null; duration_ms: number }[];
+};
+
+export function calculateStoredSessionReadiness(contentPoints: number, activePro: boolean, session: StoredSessionEvidence) {
+  const pitch = session.recordings.find((recording) => recording.segment_kind === "pitch" && recording.question_index === null);
+  const answers = [1, 2].map((index) => session.recordings.find((recording) => recording.segment_kind === "answer" && recording.question_index === index));
+  const voiceSession = Boolean(pitch && answers.every(Boolean));
+  const transcriptsValid = Boolean(pitch?.transcript?.trim() && answers.every((answer) => answer?.transcript?.trim()));
+  return calculateReadiness({
+    contentPoints,
+    sessionPoints: session.sessionPoints,
+    deliveryPoints: session.deliveryPoints,
+    published: session.publishedRevisionId !== null,
+    activePro,
+    startedPro: session.tierAtStart === "pro",
+    matchingPublishedRevision: session.snapshotRevisionId === session.publishedRevisionId,
+    completed: session.state === "completed",
+    fixture: session.fixture,
+    voiceSession,
+    pitchSeconds: (pitch?.duration_ms ?? 0) / 1000,
+    answerSeconds: Math.min(...answers.map((answer) => (answer?.duration_ms ?? 0) / 1000)),
+    transcriptsValid,
+    feedbackValid: session.feedbackValid,
+  });
+}
