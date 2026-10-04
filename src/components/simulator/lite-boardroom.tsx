@@ -88,6 +88,7 @@ export function LiteBoardroom({ activeSpeaker, amplitude, personas, playbackActi
         {personas.map((persona, index) => (
           <div className={"chair-position position-" + (index + 1)} key={persona.persona_key}>
             <HolographicChair index={index} active={activeSpeaker === persona.persona_key} amplitude={amplitude} initials={personaInitials(persona.name)} />
+            <strong className="chair-name">{persona.name}</strong>
           </div>
         ))}
       </div>
