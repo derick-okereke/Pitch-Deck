@@ -28,8 +28,7 @@ export default async function Home() {
           <SiteHeader investorHref={investorHref} workspaceHref={workspaceHref} workspaceLabel={workspaceLabel} />
           <div className="hero-grid">
             <div className="hero-copy">
-              <p className="eyebrow"><span aria-hidden="true" /> Practice meets discovery</p>
-              <h1>Prepare the pitch.<br />Prove the signal.</h1>
+              <h1>Pitch smarter and get discovered by the right investors</h1>
               <p className="hero-lede">Practise with an AI investor panel, understand where your story needs work, and become easier for the right investors to discover.</p>
               <div className="hero-actions role-paths">
                 <div className="role-path role-path-founder">
