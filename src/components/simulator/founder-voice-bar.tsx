@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { personaInitials } from "@/lib/simulator";
 
 const SAMPLE_COUNT = 44;
 const silentSamples = Array<number>(SAMPLE_COUNT).fill(0);
 
-export function FounderVoiceBar({ amplitude, recording }: { amplitude: number; recording: boolean }) {
+export function FounderVoiceBar({ amplitude, founderName, recording }: { amplitude: number; founderName: string; recording: boolean }) {
   const levelRef = useRef(0);
   const [samples, setSamples] = useState(silentSamples);
 
@@ -26,7 +27,7 @@ export function FounderVoiceBar({ amplitude, recording }: { amplitude: number; r
 
   return (
     <div className={"founder-voice-bar" + (recording ? " is-recording" : "")} style={{ "--voice-level": recording ? Math.min(1, Math.max(0, amplitude)) : 0 } as CSSProperties} role="group" aria-label={recording ? "Your microphone is recording" : "Your microphone is ready for recording"}>
-      <span className="founder-voice-avatar" aria-label="Amara Okoye">AO</span>
+      <span className="founder-voice-avatar" aria-label={founderName}>{personaInitials(founderName)}</span>
       <div className="founder-voice-signal">
         <div className="founder-voice-caption"><strong>Your microphone</strong><span>{recording ? "Recording" : "Starting…"}</span></div>
         <svg viewBox="0 0 352 44" preserveAspectRatio="none" role="img" aria-label={recording ? "Live microphone waveform" : "Microphone idle"}>

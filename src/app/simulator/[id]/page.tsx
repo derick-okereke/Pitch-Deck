@@ -3,9 +3,12 @@ import Link from "next/link";
 import { CircleAlert } from "lucide-react";
 import { SimulatorSessionLive } from "@/components/simulator/simulator-session-live";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentAccount } from "@/lib/account";
 
 export default async function SimulatorSessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const account = await getCurrentAccount();
+  if (!account) notFound();
   const supabase = await createClient();
   const { data: session } = await supabase.from("simulator_sessions").select("id, state, state_version, snapshot_revision_id, answered_question_count, retry_stage, expires_at").eq("id", id).maybeSingle();
   if (!session || ["failed", "cancelled"].includes(session.state)) notFound();
@@ -20,5 +23,5 @@ export default async function SimulatorSessionPage({ params }: { params: Promise
     supabase.from("simulator_questions").select("question_index, persona_key, question, source_quote, focus_category").eq("session_id", id).order("question_index"),
   ]);
   if (!personas || personas.length !== 3) notFound();
-  return <SimulatorSessionLive answeredQuestionCount={session.answered_question_count} initialQuestions={questions ?? []} initialState={session.state as "ready" | "pitch_processing" | "question_ready" | "answer_processing" | "ready_for_feedback" | "feedback_generating" | "retryable_error" | "completed"} initialStateVersion={session.state_version} personas={personas} retryStage={session.retry_stage} sessionId={session.id} />;
+  return <SimulatorSessionLive answeredQuestionCount={session.answered_question_count} founderName={account.displayName} initialQuestions={questions ?? []} initialState={session.state as "ready" | "pitch_processing" | "question_ready" | "answer_processing" | "ready_for_feedback" | "feedback_generating" | "retryable_error" | "completed"} initialStateVersion={session.state_version} personas={personas} retryStage={session.retry_stage} sessionId={session.id} />;
 }

@@ -38,8 +38,9 @@ function questionerName(question: SimulatorQuestion | undefined, personas: Simul
   return personas.find((persona) => persona.persona_key === question?.persona_key)?.name ?? "AI investor";
 }
 
-export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCount, initialQuestions, initialState, initialStateVersion, personas, retryStage, sessionId }: {
+export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCount, founderName, initialQuestions, initialState, initialStateVersion, personas, retryStage, sessionId }: {
   answeredQuestionCount: number;
+  founderName: string;
   initialQuestions: SimulatorQuestion[];
   initialState: DurableState;
   initialStateVersion: number;
@@ -287,7 +288,7 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
       </div>
 
       <div className="session-workspace">
-        <SimulatorBoardroom activeSpeaker={activeSpeaker} amplitude={recording ? level : 0} playbackActive={playing} busy={recording || playing} personas={personas} showMicrophone={phase === "countdown" || recording} />
+        <SimulatorBoardroom activeSpeaker={activeSpeaker} amplitude={recording ? level : 0} founderName={founderName} playbackActive={playing} busy={recording || playing} personas={personas} showMicrophone={phase === "countdown" || recording} />
         <section className="session-console" aria-labelledby="session-task-title">
           <div className="session-progress" aria-label="Session progress"><i className={phase !== "ready" ? "done" : "active"} /><i className={answeredCount > 0 ? "done" : phase === "question" || phase === "recording-answer" ? "active" : ""} /><i className={answeredCount === 2 ? "done" : answeredCount === 1 ? "active" : ""} /><span>Pitch</span><span>Question 1</span><span>Question 2</span></div>
           {captureNeedsAttention && <Status title={captureState === "requesting" ? "Waiting for microphone permission" : "Microphone needs attention"} message={captureMessage} />}

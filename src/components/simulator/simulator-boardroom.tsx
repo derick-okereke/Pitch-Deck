@@ -28,7 +28,7 @@ function saveReducedPreference(reduced: boolean) {
   }
 }
 
-export function SimulatorBoardroom({ activeSpeaker, amplitude, personas, playbackActive = false, busy = false, showMicrophone = false }: { activeSpeaker: PersonaKey | "founder" | null; amplitude: number; personas: SimulatorPersona[]; playbackActive?: boolean; busy?: boolean; showMicrophone?: boolean }) {
+export function SimulatorBoardroom({ activeSpeaker, amplitude, founderName = "Founder", personas, playbackActive = false, busy = false, showMicrophone = false }: { activeSpeaker: PersonaKey | "founder" | null; amplitude: number; founderName?: string; personas: SimulatorPersona[]; playbackActive?: boolean; busy?: boolean; showMicrophone?: boolean }) {
   const [deviceClass, setDeviceClass] = useState<DeviceClass>("unknown");
   const [eligible, setEligible] = useState(false);
   const [fullRequested, setFullRequested] = useState(false);
@@ -127,7 +127,7 @@ export function SimulatorBoardroom({ activeSpeaker, amplitude, personas, playbac
         {fullRequested && !graphicsFailed && FullScene && (
           <FullScene activeSpeaker={activeSpeaker} amplitude={amplitude} playbackActive={playbackActive} allowRecovery={!busy} reducedMotion={reducedMotion} onFailure={failure} onReady={ready} />
         )}
-        {showMicrophone && <FounderVoiceBar amplitude={amplitude} recording={activeSpeaker === "founder"} />}
+        {showMicrophone && <FounderVoiceBar amplitude={amplitude} founderName={founderName} recording={activeSpeaker === "founder"} />}
       </div>
       <p className="scene-accessible-status" aria-live="polite">
         {activeSpeaker === "founder" ? "You are speaking." : activeSpeaker ? "An AI persona is speaking." : "The panel is waiting."}
