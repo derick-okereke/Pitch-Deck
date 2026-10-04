@@ -307,7 +307,7 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
             <p className="question-source">Prompted by: “{currentQuestion.source_quote}” · Generated from your pitch transcript</p>
             <div className="session-action-row">
               {playing ? <button className="button button-light" type="button" onClick={() => { releaseAudio(); setQuestionReady(true); }}><Pause size={17} /> Stop voice</button> : <button className="button button-light" type="button" onClick={() => void playQuestion()}><Play size={17} /> {questionReady ? "Replay voice" : "Play voice"}</button>}
-              <button className="record-control" type="button" disabled={!questionReady} onClick={() => void prepareCapture("answer")}><Mic2 size={19} /> Record answer {currentQuestion.question_index}</button>
+              <button className="record-control answer-control" type="button" disabled={!questionReady} onClick={() => void prepareCapture("answer")}><Mic2 size={19} /> Record answer {currentQuestion.question_index}</button>
             </div>
             {!questionReady && <button className="text-action" type="button" onClick={() => setQuestionReady(true)}>Continue with the written question</button>}
           </div>}
