@@ -25,7 +25,6 @@ function OfficeChair() {
 
 export function OfficeChairField() {
   const stageRef = useRef<HTMLDivElement>(null);
-  const chairRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -44,27 +43,17 @@ export function OfficeChairField() {
     };
   }, []);
 
-  const moveChair = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!chairRef.current || reducedMotion) return;
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - bounds.left) / bounds.width - 0.5;
-    const y = (event.clientY - bounds.top) / bounds.height - 0.5;
-    chairRef.current.style.transform = `translate(${x * 14}px, ${y * 10}px) rotate(${x * 4}deg)`;
-  };
-
   return (
     <div
       ref={stageRef}
       className={styles.stage}
       role="img"
       aria-label="Office chair surrounded by interactive ivory particles that follow the pointer"
-      onPointerMove={moveChair}
-      onPointerLeave={() => { if (chairRef.current) chairRef.current.style.transform = ""; }}
     >
       <div className={styles.field} aria-hidden="true">
         {active && !reducedMotion && <Antigravity color="#FAF9F6" />}
       </div>
-      <div ref={chairRef} className={styles.chair} aria-hidden="true"><OfficeChair /></div>
+      <div className={styles.chair} aria-hidden="true"><OfficeChair /></div>
     </div>
   );
 }

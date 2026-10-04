@@ -392,7 +392,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .home-page .scroll-cue { color: #344256; }
 }
 @media (max-width: 720px) {
-  .home-page .simulator-section,
   .home-page .closing-panel {
     background:
       radial-gradient(ellipse 95% 36% at 120% 118%, #FAF9F6 22%, transparent 88%),
