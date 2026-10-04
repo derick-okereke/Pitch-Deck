@@ -1,5 +1,6 @@
 import type { ProfileActionState } from "@/lib/profile-action-state";
 import { saveFounderProfile } from "@/lib/save-founder-profile";
+import { captureServerFailure } from "@/lib/telemetry/watchup-server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -17,8 +18,9 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const state = await saveFounderProfile(formData);
     return Response.json(state, { status: responseStatus(state) });
-  } catch (error) {
-    console.error("Founder profile save failed", { requestId, error });
+  } catch {
+    console.error("Founder profile save failed", { requestId, code: "PROFILE_STORAGE_FAILURE" });
+    captureServerFailure("founder_profile", "PROFILE_STORAGE_FAILURE");
     return Response.json({
       status: "error",
       message: `We could not reach profile storage. Your browser copy is safe. Try again shortly. Reference ${requestId}.`,

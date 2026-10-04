@@ -14,7 +14,7 @@
     "test:phase3": "node --test --experimental-strip-types tests/azure-speech.test.ts tests/device-tier.test.ts tests/transcript-metrics.test.ts tests/simulator.test.ts",
     "test:phase4": "node --test --experimental-strip-types tests/readiness.test.ts tests/investor-profile.test.ts tests/conversation.test.ts",
     "test:phase4:integration": "node tests/phase4-database.integration.mjs",
-    "test:phase5": "node --test --experimental-strip-types tests/billing.test.ts",
+    "test:phase5": "node --test --experimental-strip-types tests/billing.test.ts tests/telemetry-policy.test.ts",
     "test:phase5:integration": "node tests/phase5-database.integration.mjs"
   },
   "dependencies": {
@@ -22,9 +22,14 @@
     "@react-three/fiber": "^9.8.1",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
+    "@watchupltd/browser": "0.2.1",
+    "@watchupltd/nextjs": "0.2.2",
+    "@watchupltd/node": "0.2.2",
+    "@watchupltd/react": "0.2.2",
     "groq-sdk": "^1.6.0",
     "lucide-react": "^1.48.0",
     "next": "^16.3.6",
+    "posthog-js": "1.435.8",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "three": "^0.186.1",

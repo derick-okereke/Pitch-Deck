@@ -69,6 +69,8 @@ PostHog tracks minimal deliberate events: role selected, draft saved, review fin
 
 WatchUp setup: install `@watchupltd/nextjs`, `@watchupltd/browser`, `@watchupltd/node`, `@watchupltd/react`. Mount a client-only dynamic `WatchupProvider` from `@watchupltd/nextjs/client` inside the root layout. Initialize `initWatchup` from `@watchupltd/nextjs/server` in instrumentation; use an initialization-safe helper and `withWatchupRoute` for handlers. `getWatchup().captureError` supports manual server capture. These names are documented in the [official Next.js guide](https://watchup.site/docs/sdks/nextjs), read in-browser on September26. Pin actual versions and verify redaction hooks before enabling automatic capture on sensitive routes.
 
+Implementation note (October 4): the installed Next.js provider calls `trackWebView()` on each route change even when `autoCapture.pageViews` is false, and `withWatchupRoute` uses raw pathname/error values. The app therefore uses the official browser SDK with automatic capture disabled and the Next.js server singleton for fixed, scrubbed error codes. See `docs/phase5-observability.md`. This preserves the payload policy below while account keys and live receipt evidence are pending.
+
 Our monitoring payload policy: sanitized request_id, route template (not raw URLs), environment/release, status/error code, operation stage and latency only. No microphone data, messages, tokens or payment payload. Catch reporting failures. Require one deliberate safe browser error and one server exception visible under correct release before marking integration complete. Documentation support is established; deployed capture and scrubbing remain untested.
 
 ## Operating targets and failure playbook

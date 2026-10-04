@@ -1056,3 +1056,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .spoken-score-list article { padding-block: 24px; }
   .persona-feedback-list dl > div { padding: 20px; }
 }
+/* Optional, consented product analytics */
+.telemetry-consent { position: fixed; z-index: 90; inset: auto 20px 20px auto; width: min(390px, calc(100vw - 40px)); padding: 18px; color: #f8fafc; background: #0c1b31; border: 1px solid #6b89b5; border-radius: 12px; box-shadow: 0 14px 45px #0005; }
+.telemetry-consent p { margin: 0 0 14px; font-size: 14px; line-height: 1.5; }
+.telemetry-consent strong { display: block; margin-bottom: 3px; font-size: 15px; }
+.telemetry-consent div { display: flex; justify-content: flex-end; gap: 9px; }
+.telemetry-consent button, .telemetry-preferences { border: 1px solid #a5b7d2; border-radius: 6px; padding: 8px 11px; background: transparent; color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
+.telemetry-consent button:last-child { background: #eef3fb; border-color: #eef3fb; color: #09172a; }
+.telemetry-consent button:focus-visible, .telemetry-preferences:focus-visible { outline: 3px solid #77a8ff; outline-offset: 2px; }
+.telemetry-preferences { position: fixed; z-index: 89; inset: auto 12px 12px auto; padding: 5px 8px; background: #0c1b31; border-color: #6b89b5; opacity: .82; }

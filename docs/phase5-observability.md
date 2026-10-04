@@ -1,0 +1,9 @@
+# Phase 5 observability and product analytics
+
+The application reports fixed operational error codes to WatchUp from selected browser and server failure paths. Server initialization lives in `src/instrumentation.ts`; the browser adapter disables automatic errors, page views, and performance events. The current `@watchupltd/nextjs` provider always sends route changes with the full URL, so it is deliberately not mounted on private pages. Do not pass raw exceptions, URL query strings, payment payloads, drafts, messages, transcripts, or audio to either provider.
+
+Set `WATCHUP_API_KEY` to the private server key and `NEXT_PUBLIC_WATCHUP_KEY` to a separate `wup_pub_…` browser key in the deployment environment. Set `GIT_SHA` and `NEXT_PUBLIC_GIT_SHA` to the deployed revision when available. Without a key, the corresponding adapter is disabled.
+
+Set `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST` to the PostHog project token and its regional HTTPS ingest host. Users must allow analytics through the on-page choice before the SDK starts. Autocapture, page views, session replay, and exception capture are disabled. Only named product events are sent, and a final `before_send` allowlist strips all other properties. The choice can be changed through **Analytics choices**. PostHog failure never changes a save, conversation, simulation, or payment response.
+
+Run `npm run test:phase5` and `npm run build` after configuration. For live evidence, use a synthetic account to exercise a safe failure and a successful deliberate event, then confirm their receipt in the matching WatchUp and PostHog projects. Check the payload for tokens, URLs, email, form text, audio, transcripts, and billing bodies before declaring the integrations verified. No live vendor receipt has been recorded in this repository yet.

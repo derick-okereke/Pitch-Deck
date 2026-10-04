@@ -5,6 +5,7 @@ import { useActionState, useId, useRef, useState } from "react";
 import { ArrowRight, Eye, EyeOff, LoaderCircle } from "lucide-react";
 import { requestPasswordReset, signIn, signUp, updatePassword, type AuthFormState } from "@/app/auth/actions";
 import { useFormRecovery } from "@/hooks/use-form-recovery";
+import { captureProductEvent } from "@/lib/telemetry/posthog-client";
 
 const initialState: AuthFormState = {};
 
@@ -76,7 +77,7 @@ export function SignUpForm({ defaultRole, next }: { defaultRole: "founder" | "in
   const { recoveredAt } = useFormRecovery({ formRef, storageKey: "pitch-deck:auth:sign-up" });
   return <form className="auth-form" action={action} noValidate ref={formRef}>
     {next ? <input type="hidden" name="next" value={next} /> : null}
-    <fieldset className="auth-role-choice"><legend>I am joining as</legend><label><input type="radio" name="role" value="founder" defaultChecked={defaultRole === "founder"} /><span>Founder<small>Build and practise your pitch.</small></span></label><label><input type="radio" name="role" value="investor" defaultChecked={defaultRole === "investor"} /><span>Investor<small>Discover and contact founders.</small></span></label></fieldset>
+    <fieldset className="auth-role-choice" onChange={(event) => { const target = event.target; if (!(target instanceof HTMLInputElement)) return; const role = target.value; if (role === "founder" || role === "investor") captureProductEvent("role_selected", { role }); }}><legend>I am joining as</legend><label><input type="radio" name="role" value="founder" defaultChecked={defaultRole === "founder"} /><span>Founder<small>Build and practise your pitch.</small></span></label><label><input type="radio" name="role" value="investor" defaultChecked={defaultRole === "investor"} /><span>Investor<small>Discover and contact founders.</small></span></label></fieldset>
     <label><span>Name</span><input name="displayName" type="text" autoComplete="name" maxLength={80} required /><ErrorText errors={state.fieldErrors?.displayName} /></label>
     <label><span>Email</span><input name="email" type="email" autoComplete="email" maxLength={254} required /><ErrorText errors={state.fieldErrors?.email} /></label>
     <PasswordField label="Password" autoComplete="new-password" errors={state.fieldErrors?.password} showRequirements mentionPasswordManagers />

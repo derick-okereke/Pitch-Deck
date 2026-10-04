@@ -7,6 +7,8 @@ import type { FounderWorkspace } from "@/lib/founder-profile";
 import { founderSectors, minorToMajor, type FounderDraft } from "@/lib/profile";
 import { initialProfileActionState, type ProfileActionState } from "@/lib/profile-action-state";
 import { useFormRecovery } from "@/hooks/use-form-recovery";
+import { captureBrowserFailure } from "@/lib/telemetry/watchup-browser";
+import { captureProductEvent } from "@/lib/telemetry/posthog-client";
 
 const sections = [
   ["basics", "Basics"], ["problem", "Problem & solution"], ["market", "Market & traction"],
@@ -175,7 +177,10 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
         draftVersion: result.draftVersion ?? current.draftVersion,
         startupId: result.startupId ?? current.startupId,
       }));
+      if (result.status === "saved") captureProductEvent("founder_draft_saved");
+      if (result.status === "review_ready") captureProductEvent("profile_review_finished");
     } catch {
+      captureBrowserFailure("profile_save", "PROFILE_SAVE_CLIENT_FAILURE");
       setState((current) => ({
         ...current,
         status: "error",

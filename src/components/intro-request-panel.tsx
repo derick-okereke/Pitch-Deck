@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CircleAlert, LoaderCircle, LockKeyhole, MessageSquareText, X } from "lucide-react";
 import styles from "./intro-request-panel.module.css";
+import { captureBrowserFailure } from "@/lib/telemetry/watchup-browser";
+import { captureProductEvent } from "@/lib/telemetry/posthog-client";
 
 type Props = {
   startupId: string;
@@ -68,10 +70,12 @@ export function IntroRequestPanel({ startupId, startupName, existingConversation
         return;
       }
       window.localStorage.removeItem(storageKey);
+      if (result.data.created) captureProductEvent("intro_sent");
       dialogRef.current?.close();
       router.push(`/inbox/${result.data.conversation_id}`);
       router.refresh();
     } catch {
+      captureBrowserFailure("intro_request", "INTRO_REQUEST_CLIENT_FAILURE");
       setError("The introduction could not reach the server. Your note is still saved here; check the connection and try again.");
     } finally {
       setSending(false);

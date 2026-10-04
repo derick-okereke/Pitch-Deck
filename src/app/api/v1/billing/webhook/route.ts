@@ -2,6 +2,7 @@ import { sha256, verifyBachsSignature } from "@/lib/billing-core";
 import { BachsError, getBachsConfig } from "@/lib/bachs";
 import { reconcilePaidCheckout, reconcileSubscription } from "@/lib/billing";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { captureServerFailure } from "@/lib/telemetry/watchup-server";
 
 export const runtime = "nodejs";
 
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
     return new Response("ok");
   } catch (error) {
     const providerError = error instanceof BachsError ? error : new BachsError("WEBHOOK_PROCESSING_FAILED", "Webhook processing failed.", true);
+    captureServerFailure("billing_webhook", providerError.code);
     await admin.from("billing_webhook_receipts").update({
       state: providerError.retryable ? "failed" : "quarantined",
       error_code: providerError.code,

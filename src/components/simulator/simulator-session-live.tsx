@@ -7,6 +7,8 @@ import { ArrowLeft, AudioLines, CircleAlert, Clock3, Mic2, Pause, Play, RefreshC
 import type { PersonaKey } from "@/data/simulator-demo";
 import { useAudioCapture } from "@/hooks/use-audio-capture";
 import type { SimulatorPersona, SimulatorQuestion } from "@/lib/simulator";
+import { captureProductEvent } from "@/lib/telemetry/posthog-client";
+import { captureBrowserFailure } from "@/lib/telemetry/watchup-browser";
 import { SimulatorBoardroom } from "./simulator-boardroom";
 
 type DurableState = "ready" | "pitch_processing" | "question_ready" | "answer_processing" | "ready_for_feedback" | "feedback_generating" | "retryable_error" | "completed";
@@ -154,9 +156,11 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
       });
       setStateVersion(result.stateVersion);
       setPhase("complete");
+      captureProductEvent("session_step_completed", { step: "report" });
       setAnnouncement("Your private coaching report is ready.");
       router.push(result.reportUrl);
     } catch (error) {
+      captureBrowserFailure("simulator_step", "FEEDBACK_CLIENT_FAILURE");
       setProviderError(error instanceof Error ? error.message : "Feedback could not be generated.");
       setStateVersion((value) => value + 2);
       setPhase("feedback-error");
@@ -179,12 +183,14 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
     try {
       const result = await jsonRequest<{ stateVersion: number; questions: SimulatorQuestion[] }>(`/api/v1/simulations/${sessionId}/pitch`, { method: "POST", body: form });
       setQuestions(result.questions);
+      captureProductEvent("session_step_completed", { step: "pitch" });
       setStateVersion(result.stateVersion);
       setAnsweredCount(0);
       setQuestionReady(false);
       setPhase("question");
       setAnnouncement(`Two questions are ready. ${questionerName(result.questions[0], personas)} asks first.`);
     } catch (error) {
+      captureBrowserFailure("simulator_step", "PITCH_CLIENT_FAILURE");
       setProviderError(error instanceof Error ? error.message : "The pitch could not be processed.");
       setStateVersion((value) => value + 2);
       setPhase("ready");
@@ -209,6 +215,7 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
       const result = await jsonRequest<{ stateVersion: number; answeredQuestionCount: number; state: DurableState }>(`/api/v1/simulations/${sessionId}/answers`, { method: "POST", body: form });
       setStateVersion(result.stateVersion);
       setAnsweredCount(result.answeredQuestionCount);
+      captureProductEvent("session_step_completed", { step: "answer" });
       releaseAudio();
       if (result.answeredQuestionCount < 2) {
         setQuestionReady(false);
@@ -218,6 +225,7 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
         await submitFeedback(result.stateVersion);
       }
     } catch (error) {
+      captureBrowserFailure("simulator_step", "ANSWER_CLIENT_FAILURE");
       setProviderError(error instanceof Error ? error.message : "The answer could not be processed.");
       setStateVersion((value) => value + 2);
       setPhase("question");

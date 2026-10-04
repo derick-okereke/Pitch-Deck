@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, BadgeCheck, CircleAlert, LoaderCircle } from "lucide-react";
+import { captureBrowserFailure } from "@/lib/telemetry/watchup-browser";
+import { captureProductEvent } from "@/lib/telemetry/posthog-client";
 
 type Status = "pending" | "active" | "error";
 
@@ -18,8 +20,8 @@ export function ReturnStatus({ checkoutId }: { checkoutId: string }) {
         const response = await fetch(`/api/v1/billing/status?checkout_id=${encodeURIComponent(checkoutId)}`, { cache: "no-store" });
         const payload = await response.json();
         if (!response.ok) throw new Error();
-        if (payload?.data?.active) { if (!stopped) setStatus("active"); return; }
-      } catch { if (!stopped) setStatus("error"); return; }
+        if (payload?.data?.active) { if (!stopped) { captureProductEvent("checkout_verified"); setStatus("active"); } return; }
+      } catch { if (!stopped) { captureBrowserFailure("billing_return", "CHECKOUT_STATUS_FAILURE"); setStatus("error"); } return; }
       if (!stopped && attempts < 15) window.setTimeout(check, 2000);
     }
     void check();

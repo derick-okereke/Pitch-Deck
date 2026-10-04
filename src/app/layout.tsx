@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@fontsource-variable/instrument-sans";
+import { TelemetryConsent } from "@/components/telemetry-consent";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body>{children}</body>
+      <body>{children}{process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST ? <TelemetryConsent /> : null}</body>
     </html>
   );
 }

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { ArrowUpRight, CircleAlert, LoaderCircle } from "lucide-react";
+import { captureBrowserFailure } from "@/lib/telemetry/watchup-browser";
+import { captureProductEvent } from "@/lib/telemetry/posthog-client";
 
 export function UpgradeButton() {
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
@@ -15,8 +17,10 @@ export function UpgradeButton() {
       const payload = await response.json();
       const checkoutUrl = payload?.data?.checkout_url;
       if (!response.ok || typeof checkoutUrl !== "string") throw new Error(payload?.error?.message || "The sandbox checkout could not be started.");
+      captureProductEvent("checkout_started");
       window.location.assign(checkoutUrl);
     } catch (error) {
+      captureBrowserFailure("billing_checkout", "CHECKOUT_CLIENT_FAILURE");
       setState("error");
       setMessage(error instanceof Error ? error.message : "The sandbox checkout could not be started.");
     }
