@@ -516,6 +516,22 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .profile-form textarea { min-height: 130px; resize: vertical; }
 .profile-form input:focus, .profile-form select:focus, .profile-form textarea:focus { background: white; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(29,78,216,.13); }
+.industry-choice { margin-top: 32px; padding: 23px 24px 25px; background: #f8fafc; border: 1px solid var(--line); }
+.industry-choice label { display: block; color: var(--ink); font-size: 16px; font-weight: 720; }
+.industry-choice label span { margin-left: 8px; color: #8b4a11; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+.industry-choice p { max-width: 560px; margin: 7px 0 17px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.industry-choice select { width: 100%; min-height: 50px; padding: 11px 14px; color: var(--ink); background: white; border: 1px solid #b9c2d0; border-radius: 0; font: inherit; font-size: 16px; }
+.industry-choice select:focus-visible { outline: 3px solid rgba(29,78,216,.18); outline-offset: 2px; border-color: var(--blue); }
+.voice-notice { margin: 14px 0 0; padding: 10px 14px; color: #25476a; background: #edf4fb; border: 1px solid #c8d9ed; font-size: 14px; line-height: 1.5; }
+@supports (appearance: base-select) {
+  .profile-form select, .profile-form select::picker(select), .industry-choice select, .industry-choice select::picker(select) { appearance: base-select; }
+  .profile-form select, .industry-choice select { display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+  .profile-form select::picker(select), .industry-choice select::picker(select) { max-height: 300px; padding: 5px; background: white; border: 1px solid #aab8cb; border-radius: 0; box-shadow: 0 16px 36px rgba(8,18,34,.17); }
+  .profile-form select option, .industry-choice select option { min-height: 39px; padding: 9px 11px; color: var(--ink); background: white; border-radius: 0; font-size: 15px; cursor: pointer; }
+  .profile-form select option:hover, .profile-form select option:focus, .industry-choice select option:hover, .industry-choice select option:focus { color: #0b2c74; background: #eaf0fb; }
+  .profile-form select option:checked, .industry-choice select option:checked { color: #123d92; background: #f0f4ff; font-weight: 700; }
+  .profile-form select option::checkmark, .industry-choice select option::checkmark { color: var(--blue); }
+}
 .profile-form small { color: var(--muted); font-size: 13px; font-weight: 450; line-height: 1.55; }
 .field-error { display: flex; align-items: flex-start; gap: 6px; color: #9f2323; font-size: 13px; font-weight: 600; line-height: 1.45; }
 .field-error svg { flex: none; margin-top: 1px; }

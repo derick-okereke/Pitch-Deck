@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { Json } from "@/lib/supabase/database.types";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { getCurrentAccount } from "@/lib/account";
-import { founderDraftSchema } from "@/lib/profile";
+import { founderDraftSchema, founderSectors } from "@/lib/profile";
 import { generatePersonas } from "@/lib/providers/groq";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -15,6 +15,7 @@ const inputSchema = z.object({
   startup_id: z.string().uuid(),
   draft_version: z.number().int().positive(),
   consent_version: z.literal("recording-consent-v1"),
+  industry: z.enum(founderSectors),
 }).strict();
 
 function mappedError(message: string | undefined) {
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
   let body: unknown;
   try { body = await request.json(); } catch { return apiError("INVALID_INPUT", "The session request is invalid.", 422); }
   const input = inputSchema.safeParse(body);
-  if (!input.success) return apiError("INVALID_INPUT", "Choose a current founder profile and confirm recording consent.", 422);
+  if (!input.success) return apiError("INVALID_INPUT", "Choose an industry, use a current founder profile, and confirm recording consent.", 422);
 
   const supabase = await createClient();
   const { data: startup } = await supabase.from("startups").select("id, draft_version, draft_payload").eq("id", input.data.startup_id).maybeSingle();
@@ -75,7 +76,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const personas = await generatePersonas({ sector: profile.data.sector, tagline: profile.data.tagline, stage: profile.data.stage });
+    const personas = await generatePersonas({ sector: input.data.industry, tagline: profile.data.tagline, stage: profile.data.stage });
     const { data: prepared, error: preparationError } = await admin.rpc("complete_simulator_preparation", {
       p_session_id: session.session_id,
       p_personas: personas as unknown as Json,

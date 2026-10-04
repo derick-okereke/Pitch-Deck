@@ -6,6 +6,13 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, AudioLines, Check, CircleAlert, FileText, Headphones, Mic2, ShieldCheck } from "lucide-react";
 import { simulatorPersonas } from "@/data/simulator-demo";
 import { useAudioCapture } from "@/hooks/use-audio-capture";
+import { founderSectors } from "@/lib/profile";
+
+const industryLabels: Record<(typeof founderSectors)[number], string> = {
+  agritech: "Agritech", "climate-energy": "Climate & energy", commerce: "Commerce", education: "Education",
+  fintech: "Fintech", healthtech: "Healthtech", logistics: "Logistics", "enterprise-software": "Enterprise software",
+  consumer: "Consumer", other: "Other",
+};
 
 type ActiveSession = { id: string; state: string; state_version: number; expires_at: string };
 type RecentReport = { session_id: string; session_points: number; created_at: string };
@@ -24,10 +31,11 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
   const router = useRouter();
   const mic = useAudioCapture();
   const [consent, setConsent] = useState(false);
+  const [industry, setIndustry] = useState<(typeof founderSectors)[number] | "">("");
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
-  const ready = mic.state === "ready" && consent && Boolean(startupId) && (isPro || remainingFree > 0) && !workspaceUnavailable;
+  const ready = mic.state === "ready" && consent && Boolean(industry) && Boolean(startupId) && (isPro || remainingFree > 0) && !workspaceUnavailable;
   const resumeSession = () => {
     if (!activeSession || mic.state !== "ready" || !consent) return;
     if (Date.parse(activeSession.expires_at) <= Date.now()) {
@@ -47,7 +55,7 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
       const response = await fetch("/api/v1/simulations", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
-        body: JSON.stringify({ startup_id: startupId, draft_version: draftVersion, consent_version: "recording-consent-v1" }),
+        body: JSON.stringify({ startup_id: startupId, draft_version: draftVersion, consent_version: "recording-consent-v1", industry }),
       });
       const payload = await response.json() as { data?: { session_id: string }; error?: { message: string } };
       if (!response.ok || !payload.data) throw new Error(payload.error?.message ?? "The session could not start.");
@@ -98,7 +106,15 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
 
       <div className="simulator-setup-grid">
         <section className="readiness-panel">
-          <div className="panel-heading"><h2>Device and voice readiness</h2><p>Microphone access starts only when you choose Check microphone.</p></div>
+          <div className="panel-heading"><h2>Set up your practice</h2><p>Choose an industry, then check your microphone. Access starts only when you choose Check microphone.</p></div>
+          <div className="industry-choice">
+            <label htmlFor="practice-industry">Industry for this practice <span>Required</span></label>
+            <p>Choose the field you want the panel to assess. You can practise a different industry next time without changing your profile.</p>
+            <select id="practice-industry" value={industry} onChange={(event) => setIndustry(event.target.value as typeof industry)} required>
+              <option value="" disabled>Choose an industry</option>
+              {founderSectors.map((value) => <option key={value} value={value}>{industryLabels[value]}</option>)}
+            </select>
+          </div>
           <div className={`mic-check ${mic.state}`}>
             <div className="mic-visual" style={{ "--mic-level": mic.level } as React.CSSProperties}><Mic2 size={23} /><i /></div>
             <div><strong>{mic.state === "ready" ? "Microphone ready" : mic.state === "requesting" ? "Waiting for permission" : "Check your microphone"}</strong><p>{mic.message}</p></div>
@@ -118,7 +134,7 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
 
           <div className="setup-actions">
             <div><Headphones size={17} /><span>Headphones recommended for the spoken questions.</span></div>
-            {activeSession ? null : <button className="button button-dark" type="button" disabled={!ready || starting} onClick={() => void enterSession()}>{starting ? "Preparing your panel…" : ready ? <>Enter the pitch room <ArrowRight size={16} /></> : !isPro && remainingFree === 0 ? "Free sessions used" : "Complete readiness first"}</button>}
+            {activeSession ? null : <button className="button button-dark" type="button" disabled={!ready || starting} onClick={() => void enterSession()}>{starting ? "Preparing your panel…" : ready ? <>Enter the pitch room <ArrowRight size={16} /></> : !isPro && remainingFree === 0 ? "Free sessions used" : !industry ? "Choose an industry first" : "Complete readiness first"}</button>}
           </div>
         </section>
 
@@ -133,7 +149,7 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
             <p>Example fictional panel</p>
             {simulatorPersonas.map((persona) => <div key={persona.key}><span>{persona.initials}</span><div><strong>{persona.name}</strong><small>{persona.focus}</small></div><Check size={14} /></div>)}
           </div>
-          <p className="fixture-disclosure"><AudioLines size={16} /> Your three fictional personas are generated from the saved sector, stage, and tagline when the room starts.</p>
+          <p className="fixture-disclosure"><AudioLines size={16} /> Your three fictional personas use the industry you choose here, plus your saved stage and tagline.</p>
         </aside>
       </div>
     </main>

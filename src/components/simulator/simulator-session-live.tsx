@@ -50,6 +50,7 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
   const router = useRouter();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const { state: captureState, level, elapsed, message: captureMessage, request, start, stop, release } = useAudioCapture();
   const [consentVerified, setConsentVerified] = useState<boolean | null>(null);
   const [phase, setPhase] = useState<SessionPhase>(() => initialPhase(initialState, retryStage));
@@ -61,6 +62,7 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
   const [hasCapture, setHasCapture] = useState(initialAnsweredCount > 0 || initialQuestions.length > 0);
   const [questionReady, setQuestionReady] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
   const [providerError, setProviderError] = useState<string | null>(initialState === "retryable_error" ? "The last provider step did not finish. Your accepted work is still saved." : null);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("The panel is ready when you are.");
@@ -72,12 +74,39 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
   const captureNeedsAttention = captureState === "requesting" || captureState === "denied" || captureState === "unsupported" || captureState === "error";
 
   const releaseAudio = useCallback(() => {
+    if (utteranceRef.current) {
+      utteranceRef.current.onend = null;
+      utteranceRef.current.onerror = null;
+      utteranceRef.current = null;
+    }
+    if (typeof window !== "undefined") window.speechSynthesis?.cancel();
+    if (audioRef.current) { audioRef.current.onended = null; audioRef.current.onerror = null; }
     audioRef.current?.pause();
     audioRef.current = null;
     if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
     audioUrlRef.current = null;
     setPlaying(false);
   }, []);
+
+  const speakLocally = (question: string, personaName: string) => {
+    if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) {
+      setQuestionReady(true);
+      setProviderError("Voice playback is unavailable on this device. You can continue with the written question.");
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(question);
+    utterance.lang = "en-GB";
+    utterance.rate = 0.94;
+    const voices = window.speechSynthesis.getVoices();
+    utterance.voice = voices.find((voice) => voice.lang === "en-NG") ?? voices.find((voice) => voice.lang === "en-GB") ?? voices.find((voice) => voice.lang.startsWith("en")) ?? null;
+    utteranceRef.current = utterance;
+    utterance.onstart = () => { setPlaying(true); setQuestionReady(true); setAnnouncement(`${personaName}'s question is playing with your device voice.`); };
+    utterance.onend = () => { releaseAudio(); setQuestionReady(true); setAnnouncement("Voice playback finished. You can record your answer."); };
+    utterance.onerror = () => { releaseAudio(); setQuestionReady(true); setVoiceNotice(null); setProviderError("Voice playback is unavailable on this device. You can continue with the written question."); };
+    setVoiceNotice("Using your device voice for this question because the generated voice could not play.");
+    try { window.speechSynthesis.speak(utterance); }
+    catch { releaseAudio(); setQuestionReady(true); setVoiceNotice(null); setProviderError("Voice playback is unavailable on this device. You can continue with the written question."); }
+  };
 
   useEffect(() => {
     const grantedAt = Number(window.sessionStorage.getItem("pitch-deck-simulator-consent-at"));
@@ -109,6 +138,7 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
   const prepareCapture = async (kind: "pitch" | "answer") => {
     releaseAudio();
     setProviderError(null);
+    setVoiceNotice(null);
     if (!await request()) return;
     setCaptureKind(kind);
     setCountdown(3);
@@ -209,6 +239,14 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
     if (!currentQuestion || !currentPersona) return;
     releaseAudio();
     setProviderError(null);
+    setVoiceNotice(null);
+    let fallbackStarted = false;
+    const fallback = () => {
+      if (fallbackStarted) return;
+      fallbackStarted = true;
+      releaseAudio();
+      speakLocally(currentQuestion.question, currentPersona.name);
+    };
     try {
       const response = await fetch("/api/v1/simulator/speech", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -221,12 +259,10 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
       audioRef.current = audio;
       audio.onplay = () => { setPlaying(true); setAnnouncement(`${currentPersona.name} is speaking.`); };
       audio.onended = () => { releaseAudio(); setQuestionReady(true); setAnnouncement("Voice playback finished. You can record your answer."); };
-      audio.onerror = () => { releaseAudio(); setQuestionReady(true); setProviderError("Voice playback is unavailable. Continue with the written question."); };
+      audio.onerror = fallback;
       await audio.play();
-    } catch (error) {
-      releaseAudio();
-      setQuestionReady(true);
-      setProviderError(error instanceof Error ? error.message : "Voice playback is unavailable. Continue with the written question.");
+    } catch {
+      fallback();
     }
   };
 
@@ -257,6 +293,7 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
           {captureNeedsAttention && <Status title={captureState === "requesting" ? "Waiting for microphone permission" : "Microphone needs attention"} message={captureMessage} />}
           {cancelError && <Status title="Session not cancelled" message={`${cancelError} Reload to recover the current state.`} />}
           {providerError && <Status title="Session paused safely" message={providerError} />}
+          {voiceNotice && phase === "question" && <p className="voice-notice" role="status">{voiceNotice}</p>}
 
           {phase === "ready" && <div className="session-task"><h1 id="session-task-title">Make the case in three minutes.</h1><p>Lead with the problem, show why your approach is credible, and finish with the amount and milestone this round unlocks. Two panel members will each ask one follow-up.</p><button className="record-control" type="button" onClick={() => void prepareCapture("pitch")}><Mic2 size={20} /> {providerError ? "Record pitch again" : "Start pitch"}</button><small>Accepted recordings are stored privately. Transcription begins only after capture ends.</small></div>}
           {phase === "countdown" && <div className="countdown-panel" role="status"><strong>{countdown}</strong><h1 id="session-task-title">Settle, breathe, begin.</h1><p>Recording starts automatically.</p></div>}

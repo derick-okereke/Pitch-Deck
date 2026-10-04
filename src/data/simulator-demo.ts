@@ -1,9 +1,9 @@
 export type PersonaKey = "p1" | "p2" | "p3";
 
 export const simulatorPersonas = [
-  { key: "p1" as const, initials: "NI", name: "Nadia Ibe", title: "Early-stage operator", focus: "Problem clarity", voice: "Warm, rigorous" },
-  { key: "p2" as const, initials: "TO", name: "Tunde Osei", title: "Commercial investor", focus: "Market evidence", voice: "Direct, analytical" },
-  { key: "p3" as const, initials: "LM", name: "Lerato Mbeki", title: "Healthcare strategist", focus: "Execution risk", voice: "Calm, strategic" },
+  { key: "p1" as const, initials: "AO", name: "Adaeze Okoro", title: "Early-stage operator", focus: "Problem clarity", voice: "Warm, rigorous" },
+  { key: "p2" as const, initials: "TA", name: "Tunde Afolayan", title: "Commercial investor", focus: "Market evidence", voice: "Direct, analytical" },
+  { key: "p3" as const, initials: "EM", name: "Elena Moreau", title: "Healthcare strategist", focus: "Execution risk", voice: "Calm, strategic" },
 ];
 
 export const coachingResources = {
