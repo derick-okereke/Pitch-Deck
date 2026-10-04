@@ -183,6 +183,10 @@ export async function generatePersonas(input: { sector: string; tagline: string;
   const content = completion.choices[0]?.message?.content;
   if (!content) throw new Error("Groq returned an empty persona response.");
   const personas = simulatorPersonasSchema.parse(JSON.parse(content)).personas;
-  const names = { p1: "Adaeze Okoro", p2: "Tunde Afolayan", p3: "Elena Moreau" } as const;
-  return personas.map((persona) => ({ ...persona, name: names[persona.persona_key] }));
+  const identities = {
+    p1: { name: "Adaeze Okoro", voice_style: "warm-rigorous" },
+    p2: { name: "Tunde Afolayan", voice_style: "direct-analytical" },
+    p3: { name: "Elena Moreau", voice_style: "calm-strategic" },
+  } as const;
+  return personas.map((persona) => ({ ...persona, ...identities[persona.persona_key] }));
 }

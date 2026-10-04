@@ -61,13 +61,13 @@ Category: `{key: one of six content keys, rating: integer0..4, rationale: text40
 
 Input only sector, tagline, stage and schema/prompt version. Output `{schema_version:"1",personas:Persona[3]}`. Persona: `{key:"p1"|"p2"|"p3",name:text2..80,title:text5..120,focus:text20..240,voice_style:"warm-rigorous"|"direct-analytical"|"calm-strategic"}`. Require unique keys/names and meaningful distinct focus. Display persistent 'Fictional AI investor' label. Instruct no real people or named real firm affiliation; generated names cannot be proven globally unique, so never imply they represent actual identities. Use generic role titles and abstract avatars. Recognizable real-person impersonation is rejected; an owner-approved fictional three-person fixture may be used only in labeled fixture mode.
 
-Voice style maps to three server-configured, distinct ElevenLabs voice IDs from the user's available licensed stock pool. The model cannot return arbitrary voice IDs. Missing voice setup blocks voice acceptance B05; question text can still work. No generated or cloned likenesses/voices.
+Voice style maps to three fixed Azure Speech voices: Nigerian English Ezinne and Abeo, and British English Libby. The model cannot return arbitrary voice IDs. Missing voice setup leaves the written question usable with device speech fallback. No generated or cloned likenesses/voices.
 
 ### Call2: two questions from two personas
 
 Input all three persona descriptors, pitch transcript and word/segment references, founder stage. Model selects exactly two different personas and returns `{schema_version:"1",questions:Question[2]}` in one call. Question is `{question_index:1|2,persona_key,question:text20..400,source_quote:text1..240,focus_category:one content key}`. Validate both personas exist, persona keys and indexes are unique, and each source_quote is in the pitch transcript. Each persona asks one single-part question; the two questions must be materially distinct and probe an actual statement or meaningful missing detail. Do not invent claimed revenue/customer names. The second question is generated from the pitch, not from answer one.
 
-TTS reads each validated question using its selected persona voice. Question text is displayed before speech. Replay caches the same output; audio playback state drives persona pulse. If TTS fails, offer 'Continue with the written question' without inventing audio or blocking feedback. During demo validation, a real voiced question must still be demonstrated at least once. [ElevenLabs speech endpoint](https://elevenlabs.io/docs/api-reference/text-to-speech/convert)
+TTS reads each validated question using its selected persona voice. Question text is displayed before speech. Audio playback state drives persona pulse. If Azure TTS fails, use the browser's device voice when available and keep 'Continue with the written question' accessible without blocking feedback. During demo validation, a real Azure-voiced question must still be demonstrated at least once. [Azure Speech REST endpoint](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/rest-text-to-speech)
 
 ### Call3: feedback
 

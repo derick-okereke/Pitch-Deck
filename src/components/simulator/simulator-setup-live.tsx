@@ -129,7 +129,7 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
 
           <label className="recording-consent">
             <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
-            <span><strong>I consent to this recording being transcribed.</strong><small>The audio is sent to Groq to produce a private transcript and two follow-up questions. Generated question text is sent to ElevenLabs only when you request voice playback.</small></span>
+            <span><strong>I consent to this recording being transcribed.</strong><small>The audio is sent to Groq to produce a private transcript and two follow-up questions. Generated question text is sent to Azure Speech only when you request voice playback.</small></span>
           </label>
 
           <div className="setup-actions">
