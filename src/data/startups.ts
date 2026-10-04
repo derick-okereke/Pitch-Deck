@@ -94,7 +94,7 @@ export const startups: Startup[] = [
     ask: "₦35m",
     score: 63,
     verified: false,
-    problem: "Teachers often receive useful assessment signals too late.",
+    problem: "Teachers often receive useful assessment results too late.",
     solution: "Classwell turns weekly exercises into small, actionable intervention groups.",
     traction: "Illustrative demo data only.",
   },

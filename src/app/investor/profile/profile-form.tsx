@@ -97,7 +97,7 @@ export function InvestorProfileForm({ accountName, profile }: { accountName: str
           <p>Founders will only see a safe professional summary after an introduction starts.</p>
           <dl>
             <div><dt>Profile visibility</dt><dd>Private</dd></div>
-            <div><dt>Email-domain signal</dt><dd>{profile?.domain_signal ? "Firm email matched" : "Unverified"}</dd></div>
+            <div><dt>Email domain check</dt><dd>{profile?.domain_signal ? "Firm email matched" : "Unverified"}</dd></div>
           </dl>
           <details><summary><CircleHelp size={15} /> What “Unverified” means</summary><p>An empty operator allowlist is valid. We do not treat a business email, Gmail address, or LinkedIn link as proof of identity or funds.</p></details>
         </aside>

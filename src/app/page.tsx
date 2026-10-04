@@ -66,7 +66,7 @@ export default async function Home() {
         <section className="content-panel process-panel" id="how-it-works">
           <div className="section-heading centered-heading">
             <p className="eyebrow">The structured pathway</p>
-            <h2>Prepare better. Pitch clearly.<br />Get discovered.</h2>
+            <h2>Prepare better. Pitch clearly.<br />{" "}Get discovered.</h2>
           </div>
           <PathwayInfographic />
         </section>
@@ -89,14 +89,14 @@ export default async function Home() {
         <section className="content-panel discovery-preview" id="for-investors">
           <div className="section-heading split-heading">
             <div><p className="eyebrow">Substantiated deal flow</p><h2>Look past the polished idea.</h2></div>
-            <div><p>Filter by sector, stage, geography, funding ask, and a readiness signal whose components are visible.</p><Link className="inline-link" href={investorHref}>Explore discovery <ArrowRight size={16} /></Link></div>
+            <div><p>Filter by sector, stage, geography, funding ask, and Pitch-Readiness Score. Review each score&apos;s breakdown.</p><Link className="inline-link" href={investorHref}>Explore discovery <ArrowRight size={16} /></Link></div>
           </div>
           <div className="preview-card-wrap"><StartupCard startup={startups[0]} /></div>
         </section>
 
         <section className="closing-panel">
           <p className="eyebrow">Choose your side of the table</p>
-          <h2>Your next useful conversation<br />starts with better signal.</h2>
+          <h2>Founders practise their pitch.<br />{" "}Investors discover reviewed startups.</h2>
           <div className="hero-actions">
             <Link className="button button-dark" href={practiceHref}>{account?.role === "founder" ? "Continue practising" : "I’m a founder"} <ArrowRight size={17} /></Link>
             <Link className="button button-light" href={investorHref}>I’m an investor <ArrowRight size={17} /></Link>

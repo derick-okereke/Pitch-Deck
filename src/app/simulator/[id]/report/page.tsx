@@ -145,7 +145,7 @@ export default async function SimulatorReportPage({ params }: { params: Promise<
           <ReportAudioControl canSelect={readiness.canSelectPublicAudio} recordedAt={simulatorReport.recordedAt} duration={simulatorReport.pitchDuration} reason="Demo fixtures and free-started sessions cannot be selected as public pitch audio." />
 
           <section>
-            <h2>Delivery signals</h2>
+            <h2>Delivery metrics</h2>
             <dl className="delivery-metrics"><div><dt><Gauge size={15} /> Pitch pace</dt><dd>{simulatorReport.pitchPace} <small>WPM</small></dd><span>Including pauses</span></div><div><dt><Gauge size={15} /> Answer pace</dt><dd>{simulatorReport.answerPace} <small>WPM</small></dd><span>Including pauses</span></div><div><dt><AudioLines size={15} /> Detected fillers</dt><dd>{simulatorReport.fillerMatches}</dd><span>{simulatorReport.fillerTokenCount} matched words · {simulatorReport.fillerPercent}% · {simulatorReport.fillerPhrases.join(", ")}</span></div><div><dt><Clock3 size={15} /> Recorded speech</dt><dd>{simulatorReport.totalDuration}</dd><span>Pitch and answer</span></div></dl>
             <p className="metric-caveat">Speech-to-text may remove hesitations. A low count is not proof that none were audible.</p>
           </section>

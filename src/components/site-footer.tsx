@@ -5,7 +5,7 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div>
         <Link className="wordmark footer-mark" href="/">Pitch Deck<span className="wordmark-dot" aria-hidden="true" /></Link>
-        <p>Better preparation. Clearer signals. More useful conversations.</p>
+        <p>Pitch practice. Reviewed founder profiles. Private introductions.</p>
       </div>
       <div className="footer-links" aria-label="Footer navigation">
         <Link href="/privacy">Privacy</Link>

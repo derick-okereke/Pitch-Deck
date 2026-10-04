@@ -23,7 +23,7 @@ export function PitchSignal() {
   return (
     <div className="signal-wrap" ref={ref} data-active={active}>
       <div className="signal-label-row" aria-hidden="true">
-        <span>Pitch signal</span>
+        <span>Pitch readiness</span>
         <span>Illustrative demo</span>
       </div>
       <svg className="pitch-signal" viewBox="0 0 650 400" role="img" aria-labelledby="signal-title signal-desc">
@@ -67,7 +67,7 @@ export function PitchSignal() {
           <path d="M592 126 l7 7 13-16" />
         </g>
         <text x="72" y="56" className="diagram-kicker">ONE PITCH · THREE PERSPECTIVES</text>
-        <text x="72" y="88" className="diagram-title">Signal, before introduction.</text>
+        <text x="72" y="88" className="diagram-title">From pitch to introduction.</text>
       </svg>
       <div className="signal-mobile" aria-hidden="true">
         <span className="mobile-founder">Pitch</span><i />
