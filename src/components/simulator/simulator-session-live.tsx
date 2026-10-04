@@ -63,8 +63,7 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
   const [hasCapture, setHasCapture] = useState(initialAnsweredCount > 0 || initialQuestions.length > 0);
   const [questionReady, setQuestionReady] = useState(false);
   const [playing, setPlaying] = useState(false);
-  const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
-  const [providerError, setProviderError] = useState<string | null>(initialState === "retryable_error" ? "The last provider step did not finish. Your accepted work is still saved." : null);
+  const [providerError, setProviderError] = useState<string | null>(initialState === "retryable_error" ? "The last step did not finish. Your accepted work is still saved." : null);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("The panel is ready when you are.");
 
@@ -101,12 +100,11 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
     const voices = window.speechSynthesis.getVoices();
     utterance.voice = voices.find((voice) => voice.lang === "en-NG") ?? voices.find((voice) => voice.lang === "en-GB") ?? voices.find((voice) => voice.lang.startsWith("en")) ?? null;
     utteranceRef.current = utterance;
-    utterance.onstart = () => { setPlaying(true); setQuestionReady(true); setAnnouncement(`${personaName}'s question is playing with your device voice.`); };
+    utterance.onstart = () => { setPlaying(true); setQuestionReady(true); setAnnouncement(`${personaName}'s question is playing.`); };
     utterance.onend = () => { releaseAudio(); setQuestionReady(true); setAnnouncement("Voice playback finished. You can record your answer."); };
-    utterance.onerror = () => { releaseAudio(); setQuestionReady(true); setVoiceNotice(null); setProviderError("Voice playback is unavailable on this device. You can continue with the written question."); };
-    setVoiceNotice("Using your device voice for this question because the generated voice could not play.");
+    utterance.onerror = () => { releaseAudio(); setQuestionReady(true); setProviderError("Voice playback is unavailable on this device. You can continue with the written question."); };
     try { window.speechSynthesis.speak(utterance); }
-    catch { releaseAudio(); setQuestionReady(true); setVoiceNotice(null); setProviderError("Voice playback is unavailable on this device. You can continue with the written question."); }
+    catch { releaseAudio(); setQuestionReady(true); setProviderError("Voice playback is unavailable on this device. You can continue with the written question."); }
   };
 
   useEffect(() => {
@@ -139,7 +137,6 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
   const prepareCapture = async (kind: "pitch" | "answer") => {
     releaseAudio();
     setProviderError(null);
-    setVoiceNotice(null);
     if (!await request()) return;
     setCaptureKind(kind);
     setCountdown(3);
@@ -150,7 +147,7 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
   const submitFeedback = useCallback(async (version: number) => {
     setPhase("feedback-processing");
     setProviderError(null);
-    setAnnouncement("Both answers are saved. Groq is preparing your evidence-based report.");
+    setAnnouncement("Both answers are saved. Your feedback report is being prepared.");
     try {
       const result = await jsonRequest<{ stateVersion: number; reportUrl: string }>(`/api/v1/simulations/${sessionId}/feedback`, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ state_version: version }),
@@ -240,7 +237,6 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
     if (!currentQuestion || !currentPersona) return;
     releaseAudio();
     setProviderError(null);
-    setVoiceNotice(null);
     let fallbackStarted = false;
     const fallback = () => {
       if (fallbackStarted) return;
@@ -294,7 +290,6 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
           {captureNeedsAttention && <Status title={captureState === "requesting" ? "Waiting for microphone permission" : "Microphone needs attention"} message={captureMessage} />}
           {cancelError && <Status title="Session not cancelled" message={`${cancelError} Reload to recover the current state.`} />}
           {providerError && <Status title="Session paused safely" message={providerError} />}
-          {voiceNotice && phase === "question" && <p className="voice-notice" role="status">{voiceNotice}</p>}
 
           {phase === "ready" && <div className="session-task"><h1 id="session-task-title">Make the case in three minutes.</h1><p>Lead with the problem, show why your approach is credible, and finish with the amount and milestone this round unlocks. Two panel members will each ask one follow-up.</p><button className="record-control" type="button" onClick={() => void prepareCapture("pitch")}><Mic2 size={20} /> {providerError ? "Record pitch again" : "Start pitch"}</button><small>Accepted recordings are stored privately. Transcription begins only after capture ends.</small></div>}
           {phase === "countdown" && <div className="countdown-panel" role="status"><strong>{countdown}</strong><h1 id="session-task-title">Settle, breathe, begin.</h1><p>Recording starts automatically.</p></div>}
@@ -315,7 +310,7 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
           {phase === "recording-answer" && <Recording title={`Answer question ${answeredCount + 1} directly.`} detail="Be specific about what you know, what remains an assumption, and what you will test next." elapsed={elapsed} level={level} limit={90} minimum={5} label="answer" onStop={endAnswer} />}
           {phase === "answer-processing" && <Processing title={`Saving answer ${answeredCount + 1}`} detail="The recording is being stored privately and transcribed before the panel continues." />}
           {phase === "feedback-processing" && <Processing title="Building your coaching report" detail="All three personas are assessing the pitch and both answers against the same evidence-backed rubric." />}
-          {phase === "feedback-error" && <div className="complete-panel"><span><CircleAlert size={22} /></span><h1 id="session-task-title">Your evidence is safe.</h1><p>The feedback provider did not finish. Your pitch, both questions, and both answer transcripts remain stored; retrying does not consume another session.</p><button className="record-control" type="button" onClick={() => void submitFeedback(stateVersion)}><RefreshCw size={17} /> Retry feedback</button></div>}
+          {phase === "feedback-error" && <div className="complete-panel"><span><CircleAlert size={22} /></span><h1 id="session-task-title">Your evidence is safe.</h1><p>Your feedback could not be completed. Your pitch, both questions, and both answer transcripts remain stored; retrying does not consume another session.</p><button className="record-control" type="button" onClick={() => void submitFeedback(stateVersion)}><RefreshCw size={17} /> Retry feedback</button></div>}
           {phase === "complete" && <div className="complete-panel"><span><AudioLines size={22} /></span><h1 id="session-task-title">Your report is ready.</h1><p>Both question rounds are complete and the allowance has been charged exactly once.</p><Link className="button button-dark" href={`/simulator/${sessionId}/report`}>Open coaching report</Link></div>}
           <p className="sr-only" aria-live="polite">{announcement}</p>
         </section>

@@ -121,7 +121,7 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
             <button className="button button-light" type="button" onClick={() => void mic.request()} disabled={mic.state === "requesting"}>{mic.state === "ready" ? "Check again" : "Check microphone"}</button>
           </div>
           {(mic.state === "denied" || mic.state === "unsupported" || mic.state === "error") && <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>Microphone is not ready</strong><p>{mic.message}</p></div></div>}
-          {workspaceUnavailable ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>Profile storage is unavailable</strong><p>Apply the latest Supabase migrations, then reload this page before starting practice.</p></div></div> : null}
+          {workspaceUnavailable ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>Your profile is unavailable</strong><p>Reload this page before starting practice. If it still does not load, try again later.</p></div></div> : null}
           {!startupId && !workspaceUnavailable ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>Create a founder profile first</strong><p>Practice snapshots the current draft so later feedback remains tied to the words you rehearsed.</p></div></div> : null}
           {startError ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>The room did not open</strong><p>{startError} {isPro ? "No practice session was started." : "Your free allowance was not consumed."}</p></div></div> : null}
           {expiredSession && !activeSession ? <div className="session-resume" role="status"><div><strong>Your previous session expired</strong><p>{isPro ? "Check your microphone and consent again to begin a new scored session." : "Check your microphone and consent again to begin a new session. The expired reservation does not use a free session."}</p></div></div> : null}
@@ -129,7 +129,7 @@ export function SimulatorSetupLive({ activeSession, draftVersion, expiredSession
 
           <label className="recording-consent">
             <input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />
-            <span><strong>I consent to this recording being transcribed.</strong><small>The audio is sent to Groq to produce a private transcript and two follow-up questions. Generated question text is sent to Azure Speech only when you request voice playback.</small></span>
+            <span><strong>I consent to this recording being transcribed.</strong><small>Your recording is used to create a private transcript and two follow-up questions.</small></span>
           </label>
 
           <div className="setup-actions">

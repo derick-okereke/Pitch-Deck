@@ -200,7 +200,7 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
         <div className="editor-top-actions"><span className={dirty ? "save-state dirty" : "save-state"}>{dirty ? "● Unsaved changes" : <><Check size={13} /> {draftConfirmed ? "Draft saved" : "All changes saved"}</>}</span><Link className="button button-light" href="/founder/profile/preview"><Eye size={16} /> Preview</Link></div>
       </section>
 
-      {workspace.loadError ? <div className="persistent-error editor-system-state" role="alert"><CircleAlert size={18} /><div><strong>The saved draft could not be loaded.</strong><p>Reload before entering information. If this is a new environment, apply the latest Supabase migration first.</p></div></div> : null}
+      {workspace.loadError ? <div className="persistent-error editor-system-state" role="alert"><CircleAlert size={18} /><div><strong>The saved draft could not be loaded.</strong><p>Reload this page before entering information. If your draft still does not load, try again later.</p></div></div> : null}
       {recoveredAt ? <div className="recovery-banner" role="status"><Check size={17} /><div><strong>Unsaved work recovered from this browser.</strong><p>Review it, then save when you are ready. Passwords and uploaded files are never stored this way.</p></div><button type="button" onClick={clearRecovery}>Discard recovery copy</button></div> : null}
 
       <div className="editor-layout">
