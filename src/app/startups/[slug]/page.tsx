@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft, AudioLines, CircleCheck, Info, LockKeyhole, MapPin, ShieldCheck } from "lucide-react";
+import { ArrowLeft, AudioLines, Check, CircleCheck, Info, LockKeyhole, MapPin, ShieldCheck } from "lucide-react";
 import { z } from "zod";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -61,7 +61,7 @@ export default async function StartupPage({ params }: { params: Promise<{ slug: 
         <Link className="back-link" href="/discover"><ArrowLeft size={16} /> Back to discovery</Link>
         <div className="startup-hero">
           <div>
-            <div className="detail-badges"><span>{fixture || stored?.isDemo ? "Illustrative demo" : "Published profile"}</span>{verified && <span className="verified-badge"><i /> Verified pitch-ready</span>}</div>
+            <div className="detail-badges"><span>{fixture || stored?.isDemo ? "Illustrative demo" : "Published profile"}</span>{verified && <span className="verified-badge"><Check size={14} aria-hidden="true" /> Verified pitch-ready</span>}</div>
             <p className="startup-sector">{sector} · {stage}</p><h1>{name}</h1>
             <p className="startup-detail-tagline">{tagline}</p>
             <div className="detail-meta"><span><MapPin size={15} />{location}</span><span>Raising <strong>{ask}</strong></span></div>

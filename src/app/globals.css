@@ -138,9 +138,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .startup-card { padding: 24px; background: var(--surface-subtle); border: 1px solid var(--line); border-radius: 16px; transition: transform 180ms ease, box-shadow 180ms ease; }
 .startup-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 .startup-card-topline { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 26px; color: var(--quiet); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
-.verified-badge, .reviewed-badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 9px; color: #a84b0a; background: var(--amber-soft); border: 1px solid #fed7aa; border-radius: 8px; font-size: 11px; font-weight: 750; letter-spacing: .05em; text-transform: uppercase; }
-.verified-badge i, .reviewed-badge i { width: 6px; height: 6px; background: var(--amber); border-radius: 50%; }
-.reviewed-badge { color: #555; background: white; border-color: var(--line); }.reviewed-badge i { background: #9ca3af; }
+.verified-badge, .reviewed-badge { display: inline-flex; align-items: center; gap: 6px; color: #173047; font-size: 12px; font-weight: 680; letter-spacing: 0; text-transform: none; white-space: nowrap; }
+.verified-badge svg, .reviewed-badge svg { flex: none; stroke-width: 2; }
+.reviewed-badge { color: #586574; }
 .startup-card-main { display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: start; }
 .startup-sector { margin: 0 0 8px; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .startup-card h2 { margin: 0; font-size: 24px; letter-spacing: -.03em; }
@@ -302,7 +302,6 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .button, .signal-wrap, .startup-card, .score-tile, .site-footer,
 .filter-bar, .filter-bar label, .directory-rail, .empty-state, .score-panel,
 .detail-section, .intro-card, .evidence-note { border-radius: 0; }
-.verified-badge, .reviewed-badge { border-radius: 3px; }
 .site-footer {
   padding-inline: max(36px, calc((100vw - 1440px) / 2 + 36px));
   border: 0;

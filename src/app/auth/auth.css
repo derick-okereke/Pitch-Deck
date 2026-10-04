@@ -43,8 +43,8 @@
 .auth-submit { width: 100%; margin-top: 4px; }
 .auth-submit:disabled { opacity: .6; cursor: wait; transform: none; }
 .auth-spinner { animation: auth-spin .8s linear infinite; }
-.auth-message { margin: -3px 0 0; padding: 11px 13px; color: #8c2626; background: #fff1f1; border: 1px solid #efc6c6; font-size: 13px; line-height: 1.5; }
-.auth-message.success { color: #166534; background: #ecfdf3; border-color: #bbf7d0; }
+.auth-message { margin: -3px 0 0; color: #842b2b; font-size: 14px; line-height: 1.55; }
+.auth-message.success { color: #255c43; }
 .auth-field-error { color: #a11c1c !important; }
 .form-recovery-note { margin: -5px 0 0; color: #526b86; font-size: 12px; line-height: 1.5; }
 .auth-forgot { width: fit-content; margin-top: -9px; color: var(--blue); font-size: 13px; font-weight: 680; }

@@ -13,6 +13,13 @@ const sections = [
   ["team", "Team"], ["business", "Business & competition"], ["ask", "The ask"],
 ] as const;
 
+const stageChoices = [
+  { value: "idea", label: "Idea", explanation: "shaping a concept before building a product" },
+  { value: "pre-seed", label: "Pre-seed", explanation: "building and testing an early version" },
+  { value: "seed", label: "Seed", explanation: "gaining early users and learning how to grow" },
+  { value: "growth", label: "Growth", explanation: "expanding a product with steady demand" },
+] as const;
+
 const sectorLabels: Record<(typeof founderSectors)[number], string> = {
   agritech: "Agritech", "climate-energy": "Climate & energy", commerce: "Commerce", education: "Education",
   fintech: "Fintech", healthtech: "Healthtech", logistics: "Logistics", "enterprise-software": "Enterprise software",
@@ -210,7 +217,7 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
           <fieldset disabled={workspace.loadError || pending}>
             <section id="basics" className="form-section"><div className="form-section-heading"><span>01</span><div><h2>Basics</h2><p>The five fields required for the first private save.</p></div></div><div className="form-grid two-col">
               <label>Startup name <em>Required</em><input aria-describedby="name-error" name="name" defaultValue={workspace.draft.name} required minLength={2} maxLength={80} /><FieldError id="name-error" error={errors?.name} /></label>
-              <label>Stage <em>Required</em><select name="stage" value={stage} onChange={(event) => changeStage(event.target.value as FounderDraft["stage"])} required><option value="idea">Idea</option><option value="pre-seed">Pre-seed</option><option value="seed">Seed</option><option value="growth">Growth</option></select></label>
+              <label>Stage <em>Required</em><select name="stage" value={stage} onChange={(event) => changeStage(event.target.value as FounderDraft["stage"])} required>{stageChoices.map(({ value, label, explanation }) => <option value={value} key={value}>{label} — {explanation}</option>)}</select></label>
               <label className="full-field">One-line tagline <em>Required</em><input aria-describedby="tagline-error" name="tagline" defaultValue={workspace.draft.tagline} required minLength={10} maxLength={180} /><small>Say who benefits, what changes, and how.</small><FieldError id="tagline-error" error={errors?.tagline} /></label>
               <label>Sector <em>Required</em><select name="sector" value={sector} onChange={(event) => { setSector(event.target.value as FounderDraft["sector"]); markDirty(); }}>{founderSectors.map((value) => <option key={value} value={value}>{sectorLabels[value]}</option>)}</select></label>
               {sector === "other" ? <label>Describe the sector <em>Required</em><input name="other_sector" defaultValue={workspace.draft.other_sector} minLength={2} maxLength={60} required /><FieldError id="other-sector-error" error={errors?.other_sector} /></label> : <input name="other_sector" type="hidden" value="" />}

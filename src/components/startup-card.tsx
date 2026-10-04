@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, MapPin } from "lucide-react";
+import { ArrowUpRight, Check, MapPin } from "lucide-react";
 import type { Startup } from "@/data/startups";
 import type { DiscoveryCard } from "@/lib/marketplace";
 
@@ -11,7 +11,7 @@ export function StartupCard({ startup }: { startup: Startup | DiscoveryCard }) {
       <div className="startup-card-topline">
         <span>{isDemo ? "Illustrative demo" : "Published profile"}</span>
         <span className={startup.verified ? "verified-badge" : "reviewed-badge"}>
-          <i aria-hidden="true" /> {startup.verified ? "Verified pitch-ready" : "Profile reviewed"}
+          <Check size={14} aria-hidden="true" /> {startup.verified ? "Verified pitch-ready" : "Profile reviewed"}
         </span>
       </div>
       <div className="startup-card-main">

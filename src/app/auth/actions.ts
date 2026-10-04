@@ -83,7 +83,7 @@ export async function signIn(_state: AuthFormState, formData: FormData): Promise
     .maybeSingle();
   if (!account) return { message: "Your account workspace is still being prepared. Try again shortly." };
   if ((next === "/discover" || next === "/investor/profile") && account.role !== "investor") return {
-    message: "This is a founder account. Sign in with an investor account to explore startups.",
+    message: "This account is for founders. To browse startups, use an investor account.",
   };
   redirect(postAuthDestination({ role: account.role, organizationName: account.organization_name }, next));
 }
