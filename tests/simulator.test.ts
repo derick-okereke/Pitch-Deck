@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { personaInitials, simulatorPersonasSchema, simulatorQuestionsSchema } from "../src/lib/simulator.ts";
+import { feedbackQuoteCandidates, personaInitials, simulatorPersonasSchema, simulatorQuestionsSchema } from "../src/lib/simulator.ts";
 
 const panel = {
   schema_version: "1",
@@ -49,4 +49,20 @@ test("rejects a two-question round when the same persona asks twice", () => {
     ],
   });
   assert.equal(result.success, false);
+});
+
+test("offers bounded, verbatim evidence from each transcript segment", () => {
+  const transcripts = {
+    pitch: `We help schools save time. ${"Our pilot teachers gave detailed weekly feedback. ".repeat(8)}`,
+    answer_1: "Teachers reported saving two hours per week.",
+    answer_2: "Three schools pay a monthly subscription.",
+  };
+  const candidates = feedbackQuoteCandidates(transcripts);
+  assert.ok(candidates.some((item) => item.segment === "answer_1"));
+  assert.ok(candidates.some((item) => item.segment === "answer_2"));
+  assert.ok(candidates.filter((item) => item.segment === "pitch").length > 1);
+  for (const { segment, quote } of candidates) {
+    assert.ok(quote.length <= 240);
+    assert.ok(transcripts[segment].includes(quote));
+  }
 });

@@ -103,6 +103,29 @@ export const simulatorFeedbackSchema = z.object({
 export type SimulatorQuestion = z.infer<typeof simulatorQuestionSchema>;
 export type SimulatorFeedback = z.infer<typeof simulatorFeedbackSchema>;
 
+export function feedbackQuoteCandidates(transcripts: Record<"pitch" | "answer_1" | "answer_2", string>) {
+  const candidates: Array<{ segment: keyof typeof transcripts; quote: string }> = [];
+  for (const segment of ["pitch", "answer_1", "answer_2"] as const) {
+    const transcript = transcripts[segment];
+    for (const sentence of transcript.split(/(?<=[.!?])\s+/u)) {
+      const words = [...sentence.matchAll(/\S+/gu)];
+      let start = 0;
+      while (start < words.length) {
+        let end = start + 1;
+        while (end < words.length && words[end][0].length + words[end].index - words[start].index <= 200) end += 1;
+        const first = words[start];
+        const last = words[end - 1];
+        const quote = sentence.slice(first.index, last.index + last[0].length);
+        if (quote.length <= 240 && !candidates.some((candidate) => candidate.segment === segment && candidate.quote === quote)) {
+          candidates.push({ segment, quote });
+        }
+        start = end;
+      }
+    }
+  }
+  return candidates;
+}
+
 export function tokenizeSpokenWords(text: string) {
   return (text.match(/[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu) ?? []).map((token) => token.toLocaleLowerCase());
 }
