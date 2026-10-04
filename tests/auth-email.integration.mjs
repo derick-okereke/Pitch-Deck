@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import nextEnv from "@next/env";
 import { createClient } from "@supabase/supabase-js";
+import { confirmationTokenHash } from "../src/lib/auth-confirmation.ts";
 
 nextEnv.loadEnvConfig(process.cwd());
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -14,6 +15,27 @@ const createdIds = [];
 const suffix = crypto.randomUUID();
 
 try {
+  // Generate a disposable confirmation without sending an email. Exercise the
+  // provider's actual token format, not a guessed hash length.
+  const generated = await admin.auth.admin.generateLink({
+    type: "signup",
+    email: `confirmation-${suffix}@example.com`,
+    password: "AuthTest8!",
+    options: { data: { role: "investor", display_name: "Confirmation test" } },
+  });
+  if (generated.error || !generated.data.user) throw generated.error ?? new Error("Test confirmation was not generated.");
+  createdIds.push(generated.data.user.id);
+  const tokenHash = generated.data.properties.hashed_token;
+  assert.equal(confirmationTokenHash(tokenHash), tokenHash, "Accept the token hash Supabase actually issues.");
+  const confirmationClient = createClient(url, publishableKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const verified = await confirmationClient.auth.verifyOtp({ token_hash: tokenHash, type: "email" });
+  assert.equal(verified.error, null);
+  assert.equal(verified.data.user?.id, generated.data.user.id);
+  assert.ok(verified.data.session, "Confirmation must establish a session without a signup verifier cookie.");
+  const investorAccount = await admin.from("accounts").select("role").eq("id", generated.data.user.id).single();
+  assert.equal(investorAccount.data?.role, "investor");
+  console.log(`Investor confirmation passed using Supabase's ${tokenHash.length}-character token hash.`);
+
   const confirmedEmail = `confirmed-${suffix}@example.com`;
   const unconfirmedEmail = `unconfirmed-${suffix}@example.com`;
   for (const [email, emailConfirm] of [[confirmedEmail, true], [unconfirmedEmail, false]]) {

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "test:phase2": "node --test --experimental-strip-types tests/profile.test.ts",
-    "test:auth": "node --test --experimental-strip-types tests/auth-validation.test.ts tests/auth-redirect.test.ts tests/site-url.test.ts tests/auth-callback.test.ts",
+    "test:auth": "node --test --experimental-strip-types tests/auth-validation.test.ts tests/auth-redirect.test.ts tests/site-url.test.ts tests/auth-callback.test.ts tests/auth-confirmation.test.ts",
     "test:auth:integration": "node tests/auth-email.integration.mjs",
     "test:device-tier": "node --test --experimental-strip-types tests/device-tier.test.ts",
     "test:phase3": "node --test --experimental-strip-types tests/azure-speech.test.ts tests/device-tier.test.ts tests/transcript-metrics.test.ts tests/simulator.test.ts",

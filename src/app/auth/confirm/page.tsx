@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { confirmationTokenHash } from "@/lib/auth-confirmation";
 import { postAuthDestination } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
 
@@ -10,8 +11,8 @@ export const metadata: Metadata = { title: "Confirm your email", robots: { index
 async function confirmEmail(formData: FormData) {
   "use server";
 
-  const tokenHash = formData.get("token_hash");
-  if (typeof tokenHash !== "string" || !/^[a-fA-F0-9]{64}$/.test(tokenHash)) redirect("/auth/auth-code-error");
+  const tokenHash = confirmationTokenHash(formData.get("token_hash"));
+  if (!tokenHash) redirect("/auth/auth-code-error");
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "email" });
@@ -25,9 +26,9 @@ async function confirmEmail(formData: FormData) {
   redirect(account ? postAuthDestination({ role: account.role, organizationName: account.organization_name }) : "/onboarding");
 }
 
-export default async function ConfirmEmailPage({ searchParams }: { searchParams: Promise<{ token_hash?: string }> }) {
-  const { token_hash: tokenHash } = await searchParams;
-  if (!tokenHash || !/^[a-fA-F0-9]{64}$/.test(tokenHash)) redirect("/auth/auth-code-error");
+export default async function ConfirmEmailPage({ searchParams }: { searchParams: Promise<{ token_hash?: string | string[] }> }) {
+  const tokenHash = confirmationTokenHash((await searchParams).token_hash);
+  if (!tokenHash) redirect("/auth/auth-code-error");
 
   return <AuthShell eyebrow="One last step" title="Confirm your email." intro="Choose the button below to activate your account and continue to your workspace.">
     <form action={confirmEmail} className="auth-state-card">
