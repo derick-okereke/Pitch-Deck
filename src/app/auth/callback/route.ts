@@ -32,6 +32,16 @@ export async function GET(request: Request) {
         : "/founder";
       return NextResponse.redirect(new URL(destination, publicOrigin));
     }
+    // Supabase can confirm an email before this PKCE exchange runs. If the
+    // verifier cookie is missing (for example, the email opened in another
+    // browser), the account is usable even though automatic sign-in failed.
+    if (code && error?.code === "pkce_code_verifier_not_found") {
+      const signIn = new URL("/auth/sign-in", publicOrigin);
+      signIn.searchParams.set("link", "session-unavailable");
+      const requested = safeAuthNext(url.searchParams.get("next"));
+      if (requested) signIn.searchParams.set("next", requested);
+      return NextResponse.redirect(signIn);
+    }
   }
   return NextResponse.redirect(new URL("/auth/auth-code-error", publicOrigin));
 }

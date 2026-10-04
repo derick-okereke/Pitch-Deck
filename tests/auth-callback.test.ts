@@ -14,8 +14,8 @@ const compiled = ts.transpileModule(
   { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } },
 ).outputText;
 
-function callback({ valid = true, organizationName = null as string | null } = {}) {
-  const authResult = { data: { user: valid ? { id: "test-user" } : null }, error: valid ? null : new Error("Expired") };
+function callback({ valid = true, organizationName = null as string | null, errorCode = "" } = {}) {
+  const authResult = { data: { user: valid ? { id: "test-user" } : null }, error: valid ? null : Object.assign(new Error("Expired"), { code: errorCode }) };
   let accountReads = 0;
   const client = {
     auth: { exchangeCodeForSession: async () => authResult, verifyOtp: async () => authResult },
@@ -58,4 +58,11 @@ test("PKCE and token-hash recovery reach password update before onboarding", asy
 test("failed recovery cannot proceed to the password form", async () => {
   const response = await callback({ valid: false }).get(new Request("http://localhost:3000/auth/callback?code=test&next=/auth/update-password"));
   assert.equal(response.headers.get("location"), "https://pitch-deck.pxxlspace.cv/auth/auth-code-error");
+});
+
+test("missing PKCE verifier directs a confirmed signup to sign in with its requested destination", async () => {
+  const response = await callback({ valid: false, errorCode: "pkce_code_verifier_not_found" }).get(
+    new Request("http://localhost:3000/auth/callback?code=test&next=/discover"),
+  );
+  assert.equal(response.headers.get("location"), "https://pitch-deck.pxxlspace.cv/auth/sign-in?link=session-unavailable&next=%2Fdiscover");
 });
