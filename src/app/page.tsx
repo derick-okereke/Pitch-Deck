@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowDown, ArrowRight, AudioLines, CircleCheck, Compass, LineChart, Mic2, ShieldCheck } from "lucide-react";
 import { HeroImageLoop } from "@/components/hero-image-loop";
+import { OfficeChairField } from "@/components/office-chair-field";
 import { PathwayInfographic } from "@/components/pathway-infographic";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -82,22 +83,7 @@ export default async function Home() {
             </ul>
             <Link className="inline-link" href={practiceHref}>Set up a practice session <ArrowRight size={16} /></Link>
           </div>
-          <div className="room-preview" aria-label="Illustrative AI pitch room preview">
-            <div className="room-bar"><span>AI pitch room</span><span className="live-status"><i /> Ready</span></div>
-            <div className="persona-row">
-              {[["AM", "Market"], ["KO", "Traction"], ["SI", "Ask"]].map(([initials, focus], index) => (
-                <div className="persona" key={initials}>
-                  <span className={index === 1 ? "persona-avatar active" : "persona-avatar"}>{initials}</span>
-                  <strong>{focus}</strong><small>Investor focus</small>
-                </div>
-              ))}
-            </div>
-            <div className="waveform" aria-hidden="true">
-              {Array.from({ length: 29 }, (_, index) => <i key={index} style={{ height: `${12 + ((index * 17) % 40)}px` }} />)}
-            </div>
-            <div className="room-metrics"><span><small>Pitch timer</small>02:18</span><span><small>Current state</small>Listening</span><span><small>Question</small>1 of 2</span></div>
-            <p className="preview-label">Illustrative interface · No microphone is active</p>
-          </div>
+          <OfficeChairField />
         </section>
 
         <section className="content-panel discovery-preview" id="for-investors">
