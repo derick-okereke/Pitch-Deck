@@ -6,8 +6,8 @@ export async function register() {
   initializeWatchup();
 }
 
-export const onRequestError: Instrumentation.onRequestError = async () => {
+export const onRequestError: Instrumentation.onRequestError = async (_error, _request, context) => {
   if (process.env.NEXT_RUNTIME !== "nodejs" || !process.env.WATCHUP_API_KEY) return;
-  const { captureServerFailure } = await import("@/lib/telemetry/watchup-server");
-  captureServerFailure("server_unhandled", "UNHANDLED_SERVER_ERROR");
+  const { captureUnhandledServerFailure } = await import("@/lib/telemetry/watchup-server");
+  captureUnhandledServerFailure(context.routePath, context.routeType);
 };
