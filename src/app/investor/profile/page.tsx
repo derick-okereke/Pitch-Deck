@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Menu, ShieldCheck } from "lucide-react";
 import { getCurrentAccount } from "@/lib/account";
 import { createClient } from "@/lib/supabase/server";
 import { InvestorProfileForm } from "./profile-form";
@@ -18,6 +18,15 @@ export default async function InvestorProfilePage() {
         <Link className={styles.wordmark} href="/"><BrandMark /></Link>
         <nav aria-label="Investor workspace"><Link href="/discover">Discovery</Link><Link href="/inbox">Inbox</Link><Link aria-current="page" href="/investor/profile">Investment profile</Link></nav>
         <div className={styles.account}><span>{account?.displayName}</span><form action={signOut}><button type="submit">Sign out</button></form></div>
+        <details className={styles.mobileMenu}>
+          <summary aria-label="Open investor menu"><Menu size={20} /><span className="sr-only">Investor menu</span></summary>
+          <nav aria-label="Mobile investor workspace">
+            <Link href="/discover">Discovery</Link>
+            <Link href="/inbox">Inbox</Link>
+            <Link aria-current="page" href="/investor/profile">Investment profile</Link>
+            <form action={signOut}><button type="submit">Sign out</button></form>
+          </nav>
+        </details>
       </header>
       <div className={styles.titleRow}>
         <div>

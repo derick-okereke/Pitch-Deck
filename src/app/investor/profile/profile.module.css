@@ -8,6 +8,7 @@
 .account { justify-self: end; display: flex; align-items: center; gap: 15px; color: var(--muted); font-size: 13px; }
 .account > span { max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .account button { padding: 6px 0; color: var(--blue); background: transparent; border: 0; cursor: pointer; font-size: 12px; font-weight: 680; }
+.mobileMenu { display: none; }
 .titleRow { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 64px; align-items: end; padding: 58px 48px 42px; background: white; border-bottom: 1px solid var(--line); }
 .back { display: inline-flex; align-items: center; gap: 7px; margin-bottom: 30px; color: var(--muted); font-size: 13px; font-weight: 650; }
 .titleRow h1 { max-width: 820px; margin: 0; font-size: clamp(42px, 5vw, 66px); font-weight: 680; line-height: .98; letter-spacing: -.04em; text-wrap: balance; }
@@ -80,9 +81,17 @@
 }
 
 @media (max-width: 680px) {
-  .header { grid-template-columns: 1fr auto; padding: 0 18px; }
-  .header nav { display: none; }
-  .account > span { display: none; }
+  .header { position: relative; grid-template-columns: 1fr auto; padding: 0 18px; }
+  .header > nav, .account { display: none; }
+  .mobileMenu { display: block; justify-self: end; }
+  .mobileMenu summary { width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; list-style: none; }
+  .mobileMenu summary::-webkit-details-marker { display: none; }
+  .mobileMenu nav { position: absolute; z-index: 20; top: 100%; right: 0; left: 0; display: grid; gap: 2px; padding: 12px 18px 20px; background: white; border-bottom: 1px solid var(--line); box-shadow: 0 14px 24px rgba(17, 17, 17, .08); }
+  .mobileMenu nav a, .mobileMenu nav button { min-height: 44px; display: flex; align-items: center; width: 100%; padding: 8px 4px; color: var(--muted); font-size: 15px; font-weight: 620; }
+  .mobileMenu nav a[aria-current="page"] { color: var(--ink); }
+  .mobileMenu nav a[aria-current="page"]::after { display: none; }
+  .mobileMenu nav form { margin: 0; border-top: 1px solid var(--line); }
+  .mobileMenu nav button { background: none; border: 0; cursor: pointer; text-align: left; }
   .titleRow { padding: 38px 22px 32px; }
   .titleRow h1 { font-size: 42px; }
   .formGrid { grid-template-columns: 1fr; }

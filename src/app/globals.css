@@ -36,6 +36,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .desktop-nav { display: flex; align-items: center; justify-content: center; gap: clamp(16px, 2.2vw, 30px); white-space: nowrap; }
 .desktop-nav a, .text-link, .footer-links a, .footer-links button { color: var(--muted); font-size: 15px; font-weight: 540; transition: color 180ms ease; }
 .desktop-nav a:hover, .text-link:hover, .footer-links a:hover, .footer-links button:hover { color: var(--ink); }
+.desktop-nav a[aria-current="page"] { color: var(--ink); font-weight: 680; }
 .desktop-actions { display: flex; align-items: center; justify-content: flex-end; gap: 20px; white-space: nowrap; }
 .site-signout { margin: 0; }.site-signout button { padding: 7px 0; color: var(--muted); background: transparent; border: 0; cursor: pointer; font-size: 14px; font-weight: 560; }.site-signout button:hover { color: var(--ink); }
 .menu-button { display: none; width: 42px; height: 42px; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 10px; background: white; color: var(--ink); }
@@ -54,6 +55,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .menu-button { display: inline-flex; }
   .mobile-nav { display: grid; gap: 2px; padding: 10px 0 18px; }
   .mobile-nav > a:not(.button), .mobile-nav .site-signout button { min-height: 44px; display: flex; align-items: center; padding: 8px 4px; color: var(--muted); font-size: 15px; }
+  .mobile-nav > a[aria-current="page"]:not(.button) { color: var(--ink); font-weight: 680; }
   .mobile-nav .site-signout button { width: 100%; text-align: left; }
 }
 

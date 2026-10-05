@@ -90,7 +90,7 @@ export function DiscoveryExplorer({ filters, result, loadError, filterIssue, acc
 
   return <div className="page-canvas"><div className="page-shell">
     <section className="app-panel">
-      <SiteHeader workspaceHref="/discover" workspaceLabel="Investor workspace" />
+      <SiteHeader investorWorkspace activeInvestorPage="discover" workspaceHref="/investor/profile" workspaceLabel="Investor workspace" />
       <div className="directory-intro">
         <div><h1>Find founders who did the preparation.</h1><p className="directory-welcome">Welcome back, {accountName}. Browse reviewed founder profiles; illustrative examples are clearly labelled.</p></div>
         <div className="directory-intro-copy"><p>Search by business fit, then review each founder&apos;s Pitch-Readiness Score and breakdown before requesting a private introduction.</p><Link href="/investor/profile">Edit investment profile</Link></div>
