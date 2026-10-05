@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { SHOW_ANALYTICS_CHOICES_EVENT } from "@/lib/telemetry/consent-event";
 import { ANALYTICS_CONSENT_KEY, clearPostHogIdentity, identifyPostHog, startPostHog, stopPostHog } from "@/lib/telemetry/posthog-client";
 
 type Choice = "loading" | "unset" | "yes" | "no";
@@ -11,6 +12,12 @@ export function TelemetryConsent() {
   const [choice, setChoice] = useState<Choice>("loading");
   const [editing, setEditing] = useState(false);
   const enabled = Boolean(process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST);
+
+  useEffect(() => {
+    const showChoices = () => setEditing(true);
+    window.addEventListener(SHOW_ANALYTICS_CHOICES_EVENT, showChoices);
+    return () => window.removeEventListener(SHOW_ANALYTICS_CHOICES_EVENT, showChoices);
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;
@@ -37,14 +44,13 @@ export function TelemetryConsent() {
 
   const decide = (next: "yes" | "no") => {
     try { window.localStorage.setItem(ANALYTICS_CONSENT_KEY, next); } catch { return; }
-    if (next === "no") stopPostHog();
+    if (next === "yes") startPostHog();
+    else stopPostHog();
     setChoice(next);
     setEditing(false);
   };
 
-  if (choice !== "unset" && !editing) {
-    return <button className="telemetry-preferences" type="button" onClick={() => setEditing(true)}>Analytics choices</button>;
-  }
+  if (choice !== "unset" && !editing) return null;
 
   return <aside className="telemetry-consent" aria-label="Analytics choices">
     <p><strong>Help improve Pitch Deck?</strong> Share a few usage events. Drafts, messages, recordings and page addresses are excluded.</p>

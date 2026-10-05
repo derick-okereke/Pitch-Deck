@@ -13,7 +13,10 @@ export function startPostHog() {
   if (!key || !host) return;
   try {
     if (window.localStorage.getItem(ANALYTICS_CONSENT_KEY) !== "yes") return;
-    if (initialized) { posthog.opt_in_capturing(); return; }
+    if (initialized) {
+      if (!posthog.is_capturing()) posthog.opt_in_capturing({ captureEventName: false });
+      return;
+    }
     const parsed = new URL(host);
     if (parsed.protocol !== "https:") return;
     posthog.init(key, {
@@ -27,7 +30,7 @@ export function startPostHog() {
       opt_out_capturing_by_default: true,
       before_send: beforeSendProductEvent,
     });
-    posthog.opt_in_capturing();
+    posthog.opt_in_capturing({ captureEventName: false });
     initialized = true;
   } catch {
     // Analytics availability does not affect application behavior.

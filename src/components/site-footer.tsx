@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AnalyticsSettingsButton } from "@/components/analytics-settings-button";
 
 export function SiteFooter() {
   return (
@@ -11,9 +12,9 @@ export function SiteFooter() {
         <Link href="/privacy">Privacy</Link>
         <Link href="/terms">Terms</Link>
         <Link href="/auth/sign-in">Sign in</Link>
+        {process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST ? <AnalyticsSettingsButton /> : null}
       </div>
       <p className="copyright">© 2026 Pitch Deck</p>
     </footer>
   );
 }
-
