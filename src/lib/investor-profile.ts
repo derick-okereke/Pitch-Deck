@@ -5,7 +5,8 @@ export const investorTypes = ["angel", "vc-firm", "corporate-venture", "accelera
 export const investorCountries = [
   ["NG", "Nigeria"], ["GH", "Ghana"], ["KE", "Kenya"], ["ZA", "South Africa"],
   ["UG", "Uganda"], ["RW", "Rwanda"], ["TZ", "Tanzania"], ["EG", "Egypt"],
-  ["GB", "United Kingdom"], ["US", "United States"],
+  ["GB", "United Kingdom"], ["FR", "France"], ["DE", "Germany"],
+  ["NL", "Netherlands"], ["SE", "Sweden"], ["US", "United States"],
 ] as const;
 
 export const sectorLabels: Record<(typeof founderSectors)[number], string> = {

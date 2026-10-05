@@ -6,10 +6,11 @@ import type { DiscoveryCard } from "@/lib/marketplace";
 export function StartupCard({ startup }: { startup: Startup | DiscoveryCard }) {
   const href = "slug" in startup ? `/startups/${startup.slug}` : `/startups/${startup.id}`;
   const isDemo = "isDemo" in startup ? startup.isDemo : true;
+  const demoTier = "tier" in startup ? startup.tier : startup.demoTier;
   return (
     <article className="startup-card">
       <div className="startup-card-topline">
-        <span>{isDemo ? "Illustrative demo" : "Published profile"}</span>
+        <span>{isDemo ? `Illustrative demo${demoTier ? ` · Founder ${demoTier === "pro" ? "Pro" : "Free"}` : ""}` : "Published profile"}</span>
         <span className={startup.verified ? "verified-badge" : "reviewed-badge"}>
           <Check size={14} aria-hidden="true" /> {startup.verified ? "Verified pitch-ready" : "Profile reviewed"}
         </span>
@@ -33,4 +34,3 @@ export function StartupCard({ startup }: { startup: Startup | DiscoveryCard }) {
     </article>
   );
 }
-

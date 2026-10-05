@@ -54,13 +54,14 @@ export type DiscoveryCard = {
   score: number;
   verified: boolean;
   isDemo: boolean;
+  demoTier?: "free" | "pro";
 };
 
 export type DiscoveryResult = {
   items: DiscoveryCard[];
   total: number;
   page: number;
-  pageSize: 12;
+  pageSize: 15;
   pageCount: number;
 };
 

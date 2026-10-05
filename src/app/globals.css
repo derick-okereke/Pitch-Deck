@@ -113,7 +113,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 .capability-strip { min-height: 74px; display: grid; grid-template-columns: repeat(4, 1fr); align-items: center; gap: 18px; padding: 0 26px; }
 .capability-strip span { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; font-weight: 560; }
-.capability-strip svg { color: #7d8490; }
+.capability-strip svg { color: var(--amber); }
 .content-panel { padding: 84px 64px; }
 .section-heading h2, .section-copy h2, .closing-panel h2, .directory-intro h1 { margin: 0; font-size: clamp(33px, 4vw, 48px); line-height: 1.08; letter-spacing: -.038em; font-weight: 670; }
 .centered-heading { text-align: center; }
@@ -366,11 +366,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .home-page .process-panel .pathway-fill,
 .home-page .process-panel .pathway-figure { fill: #0B1728; }
 .home-page .process-panel .pathway-line i {
-  background: #0B1728;
+  background: var(--amber);
   border-color: #FAF9F6;
 }
-.home-page .simulator-section .check-list svg,
-.home-page .simulator-section .inline-link { color: #FAF9F6; }
+.home-page .simulator-section .check-list svg { color: #FAF9F6; }
+.home-page .simulator-section .inline-link { color: var(--amber); }
 .home-page .closing-panel .button-dark {
   color: #0B1728;
   background: #FAF9F6;

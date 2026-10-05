@@ -4,6 +4,10 @@ Specification baseline: **26 September 2026**. Target: **hackathon demonstration
 
 Peekytoe combines an investor discovery marketplace with an audio pitch practice simulator. The connection between them is a readiness score: profile quality contributes 90 points and eligible Pro practice contributes 10. Investors initiate introductions; founders can always reply free.
 
+## Investor discovery demo catalogue
+
+With `DEMO_MODE=true`, investor discovery includes 15 clearly labelled fictional profiles alongside real published profiles: ten African and five European startups. They cover multiple sectors, stages, countries, funding asks, readiness scores, and illustrative Founder Free and Founder Pro plans. The examples support live filter demonstrations; they do not create billable accounts, claim real traction, or accept introduction requests. Country choices include all countries represented in the catalogue.
+
 ## Start here
 
 1. [Assessment and decision register](spec/00-assessment-and-decisions.md) — what was missing, what is confirmed, what is proposed, and what still blocks release.

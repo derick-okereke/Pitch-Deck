@@ -8,10 +8,20 @@ import { IntroRequestPanel } from "@/components/intro-request-panel";
 import { startups } from "@/data/startups";
 import { getIntroState } from "@/lib/conversation-data";
 import { getInvestorAccess, getStartupDetail } from "@/lib/marketplace-data";
-import { profileCategoryWeights, type ProfileCategoryKey } from "@/lib/profile-review";
+import { profileCategoryKeys, profileCategoryWeights, type ProfileCategoryKey } from "@/lib/profile-review";
 
 const ratingSchema = z.array(z.object({ key: z.enum(["clarity", "market", "traction", "team", "business_model", "competition"]), rating: z.number().int().min(0).max(4) }).passthrough());
 const labels: Record<ProfileCategoryKey, string> = { clarity: "Clarity", market: "Market", traction: "Traction", team: "Team", business_model: "Business model", competition: "Competition" };
+
+function illustrativeCategoryScores(contentScore: number): Array<[string, number, number]> {
+  const scores = profileCategoryKeys.map((key) => ({ key, max: profileCategoryWeights[key], value: Math.floor(contentScore * profileCategoryWeights[key] / 90) }));
+  let remaining = contentScore - scores.reduce((sum, item) => sum + item.value, 0);
+  for (const item of scores) {
+    if (remaining === 0) break;
+    if (item.value < item.max) { item.value += 1; remaining -= 1; }
+  }
+  return scores.map(({ key, value, max }) => [labels[key], value, max]);
+}
 
 export function generateStaticParams() { return startups.map(({ slug }) => ({ slug })); }
 
@@ -49,7 +59,7 @@ export default async function StartupPage({ params }: { params: Promise<{ slug: 
   const reviewedAt = stored ? new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(stored.reviewedAt)) : "24 Sep 2026";
   const parsedRatings = stored ? ratingSchema.safeParse(stored.ratings) : null;
   const ratings = parsedRatings?.success ? parsedRatings.data : null;
-  const fixtureScores: Array<[string, number, number]> = [["Clarity", 16, 20], ["Market", 11, 15], ["Traction", 15, 20], ["Team", 12, 15], ["Business model", 8, 10], ["Competition", 8, 10]];
+  const fixtureScores = fixture ? illustrativeCategoryScores(fixture.score - fixture.deliveryPoints) : [];
   const categoryScores: Array<[string, number, number]> = ratings
     ? ratings.map((rating) => [labels[rating.key], profileCategoryWeights[rating.key] * rating.rating / 4, profileCategoryWeights[rating.key]])
     : fixtureScores;
@@ -61,7 +71,7 @@ export default async function StartupPage({ params }: { params: Promise<{ slug: 
         <Link className="back-link" href="/discover"><ArrowLeft size={16} /> Back to discovery</Link>
         <div className="startup-hero">
           <div>
-            <div className="detail-badges"><span>{fixture || stored?.isDemo ? "Illustrative demo" : "Published profile"}</span>{verified && <span className="verified-badge"><Check size={14} aria-hidden="true" /> Verified pitch-ready</span>}</div>
+            <div className="detail-badges"><span>{fixture ? `Illustrative demo · Founder ${fixture.tier === "pro" ? "Pro" : "Free"}` : stored?.isDemo ? "Illustrative demo" : "Published profile"}</span>{verified && <span className="verified-badge"><Check size={14} aria-hidden="true" /> Verified pitch-ready</span>}</div>
             <p className="startup-sector">{sector} · {stage}</p><h1>{name}</h1>
             <p className="startup-detail-tagline">{tagline}</p>
             <div className="detail-meta"><span><MapPin size={15} />{location}</span><span>Raising <strong>{ask}</strong></span></div>
@@ -81,7 +91,7 @@ export default async function StartupPage({ params }: { params: Promise<{ slug: 
             <p className="section-number">READINESS BREAKDOWN</p>
             <div className="score-breakdown">
               {categoryScores.map(([label, value, max]) => <div className="score-row" key={label}><span>{label}</span><div><i style={{ width: `${Number(value) / Number(max) * 100}%` }} /></div><strong>{value} / {max}</strong></div>)}
-              <div className="score-row"><span>Delivery</span><div><i style={{ width: "0%" }} /></div><strong>0 / 10</strong></div>
+              <div className="score-row"><span>Delivery</span><div><i style={{ width: `${(fixture?.deliveryPoints ?? 0) * 10}%` }} /></div><strong>{fixture?.deliveryPoints ?? 0} / 10</strong></div>
             </div>
             <p className="score-explainer"><ShieldCheck size={18} />The score measures pitch readiness against the published rubric. It does not predict returns, certify the founder, or verify every business claim.</p>
           </section>

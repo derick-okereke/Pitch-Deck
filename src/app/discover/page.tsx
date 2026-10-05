@@ -31,7 +31,7 @@ export default async function DiscoverPage({ searchParams }: { searchParams: Pro
     page: first(params.page) ?? "1",
   });
   const filters = parsed.success ? parsed.data : discoveryFilterSchema.parse({});
-  let result: DiscoveryResult = { items: [], total: 0, page: 1, pageSize: 12, pageCount: 0 };
+  let result: DiscoveryResult = { items: [], total: 0, page: 1, pageSize: 15, pageCount: 0 };
   let loadError = false;
   let filterIssue: "invalid" | "pro_required" | null = parsed.success ? null : "invalid";
   try { result = await getDiscovery(filters); } catch (error) {

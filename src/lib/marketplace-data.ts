@@ -7,7 +7,8 @@ import { sectorLabels, stageLabels } from "@/lib/investor-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { getPublishedReadiness } from "@/lib/readiness-data";
-import { hasProDiscoveryFilters, matchesDiscoveryFilters, type DiscoveryCard, type DiscoveryFilters, type DiscoveryResult } from "@/lib/marketplace";
+import { startups as demoStartups } from "@/data/startups";
+import { hasProDiscoveryFilters, matchesDiscoveryFilters, type DiscoveryCard, type DiscoveryFilterCandidate, type DiscoveryFilters, type DiscoveryResult } from "@/lib/marketplace";
 
 export const getInvestorAccess = cache(async () => {
   const account = await getCurrentAccount();
@@ -95,17 +96,31 @@ export async function getDiscovery(filters: DiscoveryFilters): Promise<Discovery
   if (access.status !== "ready") throw new Error("INVESTOR_PROFILE_REQUIRED");
   if (hasProDiscoveryFilters(filters) && !access.demoPro) throw new Error("INVESTOR_PRO_REQUIRED");
   const rows = await publishedRows();
-  const filtered = rows.filter(({ profile, card }) => {
-    const searchable = `${profile.name} ${profile.tagline} ${profile.problem} ${profile.solution}`.toLocaleLowerCase();
-    return matchesDiscoveryFilters({ searchableText: searchable, sector: profile.sector, stage: profile.stage, country: profile.country, askCurrency: profile.ask_currency, askMinor: profile.ask_amount_minor, score: card.score, verified: card.verified }, filters);
-  }).sort((a, b) => b.card.score - a.card.score
-    || Date.parse(b.review.completed_at ?? b.revision.created_at) - Date.parse(a.review.completed_at ?? a.revision.created_at)
-    || a.startup.id.localeCompare(b.startup.id));
+  const listings: { card: DiscoveryCard; candidate: DiscoveryFilterCandidate; reviewedAt: string }[] = rows.map(({ startup, revision, review, profile, card }) => ({
+    card,
+    candidate: { searchableText: `${profile.name} ${profile.tagline} ${profile.problem} ${profile.solution}`, sector: profile.sector, stage: profile.stage, country: profile.country, askCurrency: profile.ask_currency, askMinor: profile.ask_amount_minor, score: card.score, verified: card.verified },
+    reviewedAt: review.completed_at ?? revision.created_at ?? startup.updated_at,
+  }));
+  if (process.env.DEMO_MODE === "true") {
+    const publishedNames = new Set(listings.map(({ card }) => card.name.toLocaleLowerCase()));
+    for (const startup of demoStartups) {
+      if (publishedNames.has(startup.name.toLocaleLowerCase())) continue;
+      listings.push({
+        card: { id: startup.slug, name: startup.name, tagline: startup.tagline, sector: startup.sector, stage: startup.stage, location: startup.location, ask: startup.ask, score: startup.score, verified: startup.verified, isDemo: true, demoTier: startup.tier },
+        candidate: { searchableText: `${startup.name} ${startup.tagline} ${startup.problem} ${startup.solution}`, sector: startup.sectorKey, stage: startup.stageKey, country: startup.country, askCurrency: startup.askCurrency, askMinor: startup.askMinor, score: startup.score, verified: startup.verified },
+        reviewedAt: "2026-09-24T00:00:00Z",
+      });
+    }
+  }
+  const filtered = listings.filter(({ candidate }) => matchesDiscoveryFilters(candidate, filters))
+    .sort((a, b) => b.card.score - a.card.score
+      || Date.parse(b.reviewedAt) - Date.parse(a.reviewedAt)
+      || a.card.id.localeCompare(b.card.id));
 
-  const pageSize = 12 as const;
+  const pageSize = 15 as const;
   const pageCount = Math.ceil(filtered.length / pageSize);
   const page = pageCount === 0 ? 1 : Math.min(filters.page, pageCount);
-  return { items: filtered.slice((page - 1) * pageSize, page * pageSize).map((row) => row.card), total: filtered.length, page, pageSize, pageCount };
+  return { items: filtered.slice((page - 1) * pageSize, page * pageSize).map(({ card }) => card), total: filtered.length, page, pageSize, pageCount };
 }
 
 export async function getStartupDetail(id: string) {
