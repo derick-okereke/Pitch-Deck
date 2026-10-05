@@ -6,7 +6,7 @@ Peekytoe combines an investor discovery marketplace with an audio pitch practice
 
 ## Investor discovery demo catalogue
 
-With `DEMO_MODE=true`, investor discovery includes 15 clearly labelled fictional profiles alongside real published profiles: ten African and five European startups. They cover multiple sectors, stages, countries, funding asks, readiness scores, and illustrative Founder Free and Founder Pro plans. The examples support live filter demonstrations; they do not create billable accounts, claim real traction, or accept introduction requests. Country choices include all countries represented in the catalogue.
+Investor discovery includes 15 clearly labelled fictional profiles alongside real published profiles by default: ten African and five European startups. Set `DEMO_CATALOGUE_ENABLED=false` to hide them. This switch is separate from `DEMO_MODE`, which controls demo Pro investor entitlements. The examples cover multiple sectors, stages, countries, funding asks, readiness scores, and illustrative Founder Free and Founder Pro plans. They support live filter demonstrations; they do not create billable accounts, claim real traction, or accept introduction requests. Country choices include all countries represented in the catalogue.
 
 ## Start here
 

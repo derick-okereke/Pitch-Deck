@@ -101,7 +101,7 @@ export async function getDiscovery(filters: DiscoveryFilters): Promise<Discovery
     candidate: { searchableText: `${profile.name} ${profile.tagline} ${profile.problem} ${profile.solution}`, sector: profile.sector, stage: profile.stage, country: profile.country, askCurrency: profile.ask_currency, askMinor: profile.ask_amount_minor, score: card.score, verified: card.verified },
     reviewedAt: review.completed_at ?? revision.created_at ?? startup.updated_at,
   }));
-  if (process.env.DEMO_MODE === "true") {
+  if (process.env.DEMO_CATALOGUE_ENABLED !== "false") {
     const publishedNames = new Set(listings.map(({ card }) => card.name.toLocaleLowerCase()));
     for (const startup of demoStartups) {
       if (publishedNames.has(startup.name.toLocaleLowerCase())) continue;
