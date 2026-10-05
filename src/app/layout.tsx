@@ -4,7 +4,7 @@ import { TelemetryConsent } from "@/components/telemetry-consent";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "Pitch Deck", template: "%s · Pitch Deck" },
+  title: { default: "Peekytoe", template: "%s · Peekytoe" },
   description: "Practise your pitch, earn a Pitch-Readiness Score, and get discovered by the right investors.",
 };
 

@@ -38,7 +38,7 @@ Two primary audiences, both weighted equally in the product (and in the live dem
 <!-- Interview question: what the product makes possible, and its distinct mechanism or position -->
 ## Product Purpose
 
-Pitch Deck is a two-sided marketplace connecting founders and investors, paired with an AI-powered "Learn to Pitch Properly" practice simulator. The two halves are designed to reinforce each other: completing simulator sessions earns a founder a Pitch-Readiness Score and a Verified Pitch-Ready badge, which investors can filter by. Success looks like: founders improve measurably through practice, investors get a higher-signal discovery surface than a plain idea directory, and pairs reach a real introduction through the platform.
+Peekytoe is a two-sided marketplace connecting founders and investors, paired with an AI-powered "Learn to Pitch Properly" practice simulator. The two halves are designed to reinforce each other: completing simulator sessions earns a founder a Pitch-Readiness Score and a Verified Pitch-Ready badge, which investors can filter by. Success looks like: founders improve measurably through practice, investors get a higher-signal discovery surface than a plain idea directory, and pairs reach a real introduction through the platform.
 
 ## Positioning
 
@@ -69,7 +69,7 @@ Pitch Deck is a two-sided marketplace connecting founders and investors, paired 
 
 ## Brand Commitments
 
-- Product name: **Pitch Deck**.
+- Product name: **Peekytoe**. The name comes from the delicate Maine crab whose valuable meat is prepared where it is caught and then sent onward. The platform helps a founder stay where they are while a practised pitch, reviewed profile, and readiness signal reach investors. The identity should feel approachable, precise, and refined without seafood or cartoon-crab styling.
 - Voice: composed, disciplined, "authoritatively calm" — deliberately rejects flashy AI-marketing visual/verbal tropes (this is a confirmed brand commitment, not just a DESIGN.md style note).
 - A visual identity is already committed via an exported Stitch design system — see DESIGN.md for the actual palette, type, and component specs. This file intentionally doesn't restate those values; DESIGN.md is their record, not this one.
 - AI investor personas in the simulator must always be invented — never a real, famous, or publicly identifiable person.

@@ -98,7 +98,7 @@ export function SignInForm({ next, role }: { next?: string | null; role?: "inves
     <Link className="auth-forgot" href="/auth/forgot-password">Forgot your password?</Link>
     {recoveredAt ? <small className="form-recovery-note" role="status">Your email was recovered. Passwords are never stored.</small> : null}
     <Message state={state} /><SubmitButton pending={pending}>Sign in</SubmitButton>
-    <p className="auth-switch">New to Pitch Deck? <Link href={next ? `/auth/sign-up?role=${role ?? "founder"}&next=${encodeURIComponent(next)}` : "/auth/sign-up"}>Create an account</Link></p>
+    <p className="auth-switch">New to Peekytoe? <Link href={next ? `/auth/sign-up?role=${role ?? "founder"}&next=${encodeURIComponent(next)}` : "/auth/sign-up"}>Create an account</Link></p>
   </form>;
 }
 

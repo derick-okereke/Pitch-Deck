@@ -6,6 +6,7 @@ import { Bell, ChevronDown, LogOut } from "lucide-react";
 import { signOut } from "@/app/auth/actions";
 import type { CurrentAccount } from "@/lib/account";
 import styles from "./founder-shell.module.css";
+import { BrandMark } from "@/components/brand-mark";
 
 const navigation = [
   ["Overview", "/founder"],
@@ -24,7 +25,7 @@ export function FounderShell({ children, account, pro = false }: { children: Rea
   return (
     <div className="founder-app">
       <header className="founder-header">
-        <Link className="wordmark" href="/">Pitch Deck<span className="wordmark-dot" aria-hidden="true" /></Link>
+        <Link className="wordmark" href="/"><BrandMark /></Link>
         <nav aria-label="Founder workspace">
           {navigation.map(([label, href]) => {
             const active = pathname === href || (href === "/simulator/new" && pathname.startsWith("/simulator/")) || (href === "/inbox" && pathname.startsWith("/inbox/")) || (href === "/founder/billing" && pathname.startsWith("/founder/billing/"));

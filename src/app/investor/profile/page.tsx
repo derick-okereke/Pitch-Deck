@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { InvestorProfileForm } from "./profile-form";
 import { signOut } from "@/app/auth/actions";
 import styles from "./profile.module.css";
+import { BrandMark } from "@/components/brand-mark";
 
 export default async function InvestorProfilePage() {
   const account = await getCurrentAccount();
@@ -14,7 +15,7 @@ export default async function InvestorProfilePage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <Link className={styles.wordmark} href="/">Pitch Deck<span aria-hidden="true" /></Link>
+        <Link className={styles.wordmark} href="/"><BrandMark /></Link>
         <nav aria-label="Investor workspace"><Link href="/discover">Discovery</Link><Link href="/inbox">Inbox</Link><Link aria-current="page" href="/investor/profile">Investment profile</Link></nav>
         <div className={styles.account}><span>{account?.displayName}</span><form action={signOut}><button type="submit">Sign out</button></form></div>
       </header>

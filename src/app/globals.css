@@ -32,7 +32,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .site-header { padding: 0 36px; }
 .nav-row { min-height: 76px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: clamp(24px, 3vw, 54px); border-bottom: 1px solid var(--line); }
 .wordmark { display: inline-flex; align-items: center; gap: 7px; width: fit-content; font-size: 16px; font-weight: 750; letter-spacing: -.025em; }
-.wordmark-dot { width: 7px; height: 7px; background: var(--blue); border-radius: 50%; }
+.brand-mark { display: block; width: 142px; height: auto; }
 .desktop-nav { display: flex; align-items: center; justify-content: center; gap: clamp(16px, 2.2vw, 30px); white-space: nowrap; }
 .desktop-nav a, .text-link, .footer-links a, .footer-links button { color: var(--muted); font-size: 15px; font-weight: 540; transition: color 180ms ease; }
 .desktop-nav a:hover, .text-link:hover, .footer-links a:hover, .footer-links button:hover { color: var(--ink); }

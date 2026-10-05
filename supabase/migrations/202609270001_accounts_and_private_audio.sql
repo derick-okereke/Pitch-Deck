@@ -55,7 +55,7 @@ begin
   values (
     new.id,
     selected_role,
-    left(coalesce(selected_name, 'Pitch Deck member'), 80),
+    left(coalesce(selected_name, 'Peekytoe member'), 80),
     case when selected_role is null then null else now() end
   );
   return new;

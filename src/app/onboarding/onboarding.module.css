@@ -1,7 +1,6 @@
 .page { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(420px, .92fr); background: #f4f7fb; }
 .intro { min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: clamp(32px, 6vw, 84px); color: white; background: #0b111c; }
 .wordmark { width: fit-content; color: white; text-decoration: none; font-size: 20px; font-weight: 750; letter-spacing: -.03em; }
-.wordmark span { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: #3f75ff; }
 .intro > div { max-width: 660px; }
 .intro > div > p:first-child { margin: 0 0 22px; color: #9fb0c7; font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 .intro h1 { max-width: 620px; margin: 0; font-size: clamp(45px, 6vw, 82px); line-height: .96; letter-spacing: -.04em; text-wrap: balance; }

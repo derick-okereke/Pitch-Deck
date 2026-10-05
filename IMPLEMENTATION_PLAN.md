@@ -1,4 +1,4 @@
-# Pitch Deck implementation plan
+# Peekytoe implementation plan
 
 Target: a truthful, reviewable hackathon demo by 4 October 2026.
 

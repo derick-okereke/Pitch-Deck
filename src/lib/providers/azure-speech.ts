@@ -14,7 +14,7 @@ export async function synthesizeSpeech(text: string, style: VoiceStyle) {
       "Content-Type": "application/ssml+xml",
       "Ocp-Apim-Subscription-Key": key,
       "X-Microsoft-OutputFormat": "audio-24khz-96kbitrate-mono-mp3",
-      "User-Agent": "PitchDeck",
+      "User-Agent": "Peekytoe",
     },
     body: azureSpeechSsml(text, style),
     cache: "no-store",

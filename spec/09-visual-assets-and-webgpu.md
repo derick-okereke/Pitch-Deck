@@ -68,7 +68,7 @@ Any generated raster must retain its exact generation prompt in metadata/sidecar
 
 Nothing is required to begin. The following would improve authenticity if they already exist; do not delay the build waiting for them:
 
-- A final logo or wordmark, if `Pitch Deck` should not remain typography-only.
+- The supplied Peekytoe icon, wordmark, and horizontal mark in `assets/logo_materials`, available in blue, orange, and white.
 - A preferred favicon/app-mark concept.
 - Any real founder/investor photography with explicit permission to use it.
 - Real partner/customer logos, testimonials, or outcome data with permission and exact approved wording.

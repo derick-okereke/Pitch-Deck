@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { signOut } from "@/app/auth/actions";
+import { BrandMark } from "@/components/brand-mark";
 
 export function SiteHeader({ investorHref = "/discover", workspaceHref, workspaceLabel = "Open workspace" }: {
   investorHref?: string;
@@ -15,9 +16,7 @@ export function SiteHeader({ investorHref = "/discover", workspaceHref, workspac
   return (
     <header className="site-header">
       <div className="nav-row">
-        <Link className="wordmark" href="/" aria-label="Pitch Deck home">
-          Pitch Deck<span className="wordmark-dot" aria-hidden="true" />
-        </Link>
+        <Link className="wordmark" href="/" aria-label="Peekytoe home"><BrandMark /></Link>
         <nav className="desktop-nav" aria-label="Primary navigation">
           <Link href="/#how-it-works">How it works</Link>
           <Link href="/#for-founders">For founders</Link>
@@ -56,4 +55,3 @@ export function SiteHeader({ investorHref = "/discover", workspaceHref, workspac
     </header>
   );
 }
-

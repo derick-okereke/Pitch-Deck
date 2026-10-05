@@ -53,7 +53,7 @@ export function TelemetryConsent() {
   if (choice !== "unset" && !editing) return null;
 
   return <aside className="telemetry-consent" aria-label="Analytics choices">
-    <p><strong>Help improve Pitch Deck?</strong> Share a few usage events. Drafts, messages, recordings and page addresses are excluded.</p>
+    <p><strong>Help improve Peekytoe?</strong> Share a few usage events. Drafts, messages, recordings and page addresses are excluded.</p>
     <div>
       <button type="button" onClick={() => decide("no")}>No thanks</button>
       <button type="button" onClick={() => decide("yes")}>Allow analytics</button>

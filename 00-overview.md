@@ -1,10 +1,10 @@
-# Pitch Deck — Project Overview
+# Peekytoe — Project Overview
 
 > Historical planning brief. For the proposed implementation baseline, resolved contradictions, confirmed October 4 demo target, and outstanding decisions, start with [README.md](README.md). The dated delivery plan in `spec/08-acceptance-and-delivery.md` replaces the relative eleven-day plan below. Original notes are preserved as evidence.
 
 ## What this is
 
-Pitch Deck is a two-sided marketplace connecting startups/idea owners ("founders") with investors, combined with an AI-powered "Learn to Pitch Properly" practice simulator. The two halves are designed to reinforce each other: founders who complete simulator sessions earn a **Pitch-Readiness Score** and a **Verified Pitch-Ready** badge that investors can filter by, which is the platform's core differentiator versus a plain idea directory.
+Peekytoe is a two-sided marketplace connecting startups/idea owners ("founders") with investors, combined with an AI-powered "Learn to Pitch Properly" practice simulator. The two halves are designed to reinforce each other: founders who complete simulator sessions earn a **Pitch-Readiness Score** and a **Verified Pitch-Ready** badge that investors can filter by, which is the platform's core differentiator versus a plain idea directory.
 
 Built for a hackathon. Deadline: **October 4, 2026**. Demo should give the marketplace and the simulator roughly equal weight — neither is a throwaway side feature.
 

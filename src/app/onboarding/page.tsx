@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { accountHome, getCurrentAccount } from "@/lib/account";
 import { OnboardingForm } from "./onboarding-form";
 import styles from "./onboarding.module.css";
+import { BrandMark } from "@/components/brand-mark";
 
 export default async function OnboardingPage() {
   const account = await getCurrentAccount();
@@ -14,7 +15,7 @@ export default async function OnboardingPage() {
   return (
     <main className={styles.page}>
       <section className={styles.intro}>
-        <Link className={styles.wordmark} href="/">Pitch Deck<span aria-hidden="true" /></Link>
+        <Link className={styles.wordmark} href="/"><BrandMark color="white" /></Link>
         <div>
           <p>{founder ? "Founder workspace" : "Investor workspace"}</p>
           <h1>One detail, then the useful work begins.</h1>

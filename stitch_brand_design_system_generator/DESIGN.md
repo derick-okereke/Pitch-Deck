@@ -216,7 +216,7 @@ The design system establishes a consistent mathematical progression of corner ra
 - **Accent Brand Action:** Solid cobalt blue (`#1D4ED8`) reserved for contextual in-product interactions (e.g. "Join Pitch Session"). Hover transitions to `#1E40AF`.
 
 ### Header Module
-Integrated directly within the top bounds of the first rounded container rather than a floating pinned bar. Contains a minimal typography-only wordmark (`Pitch Deck`), centered text navigational links in `#6B7280` (hovering to `#111111`), and a restrained right-aligned action pair ("Sign in" and compact button).
+Integrated directly within the top bounds of the first rounded container rather than a floating pinned bar. Contains a minimal typography-only wordmark (`Peekytoe`), centered text navigational links in `#6B7280` (hovering to `#111111`), and a restrained right-aligned action pair ("Sign in" and compact button).
 
 ### AI Pitch Room Preview Card
 A dark preview block (`#111111`) featuring:

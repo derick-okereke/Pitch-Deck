@@ -6,7 +6,7 @@ Everything here was discussed and deliberately deferred. Do **not** build these 
 
 ## Considered and explicitly declined (do not build, ever — not just "later")
 
-**AI-drafted founder profile from a rough one-liner.** The idea: a founder types a messy one-line description and an LLM drafts starter values for problem, solution, sector, and stage. This was proposed and **rejected** — not deferred. Reasoning: Pitch Deck's core purpose is founders learning to communicate their own idea; an AI-drafting feature would make it easy for some founders to be lazy about that, working against the product's actual mission. Do not build this, and be cautious about any future feature that lets an LLM write a founder's core pitch content on their behalf — it cuts against the same principle.
+**AI-drafted founder profile from a rough one-liner.** The idea: a founder types a messy one-line description and an LLM drafts starter values for problem, solution, sector, and stage. This was proposed and **rejected** — not deferred. Reasoning: Peekytoe's core purpose is founders learning to communicate their own idea; an AI-drafting feature would make it easy for some founders to be lazy about that, working against the product's actual mission. Do not build this, and be cautious about any future feature that lets an LLM write a founder's core pitch content on their behalf — it cuts against the same principle.
 
 ## Post-intro relationship tooling
 

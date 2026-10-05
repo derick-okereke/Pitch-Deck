@@ -1,8 +1,8 @@
-# Pitch Deck — build specification
+# Peekytoe — build specification
 
 Specification baseline: **26 September 2026**. Target: **hackathon demonstration by 4 October 2026**, confirmed by the owner during this review. No application has been implemented or integration tested by this specification pass.
 
-Pitch Deck combines an investor discovery marketplace with an audio pitch practice simulator. The connection between them is a readiness score: profile quality contributes 90 points and eligible Pro practice contributes 10. Investors initiate introductions; founders can always reply free.
+Peekytoe combines an investor discovery marketplace with an audio pitch practice simulator. The connection between them is a readiness score: profile quality contributes 90 points and eligible Pro practice contributes 10. Investors initiate introductions; founders can always reply free.
 
 ## Start here
 
