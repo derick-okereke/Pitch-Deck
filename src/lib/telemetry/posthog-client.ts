@@ -5,6 +5,7 @@ import { allowedEvents, beforeSendProductEvent, type ProductEvent } from "@/lib/
 
 export const ANALYTICS_CONSENT_KEY = "pitch-deck:analytics-consent-v1";
 let initialized = false;
+let identifiedAccountId: string | null = null;
 
 export function startPostHog() {
   const key = process.env.NEXT_PUBLIC_POSTHOG_KEY;
@@ -35,17 +36,21 @@ export function startPostHog() {
 
 export function stopPostHog() {
   if (!initialized) return;
-  try { posthog.opt_out_capturing(); posthog.reset(); } catch { /* optional analytics */ }
+  try { posthog.opt_out_capturing(); posthog.reset(); identifiedAccountId = null; } catch { /* optional analytics */ }
 }
 
 export function identifyPostHog(accountId: string) {
-  if (!initialized || !/^[a-f0-9-]{36}$/i.test(accountId)) return;
-  try { posthog.identify(accountId); } catch { /* optional analytics */ }
+  if (!initialized || identifiedAccountId === accountId || !/^[a-f0-9-]{36}$/i.test(accountId)) return;
+  try { posthog.identify(accountId); identifiedAccountId = accountId; } catch { /* optional analytics */ }
 }
 
 export function clearPostHogIdentity() {
-  if (!initialized) return;
-  try { posthog.reset(); } catch { /* optional analytics */ }
+  if (!initialized || !identifiedAccountId) return;
+  try {
+    posthog.reset();
+    identifiedAccountId = null;
+    if (window.localStorage.getItem(ANALYTICS_CONSENT_KEY) === "yes") posthog.opt_in_capturing();
+  } catch { /* optional analytics */ }
 }
 
 export function captureProductEvent(event: ProductEvent, properties?: { role?: "founder" | "investor"; step?: "pitch" | "answer" | "report" }) {
