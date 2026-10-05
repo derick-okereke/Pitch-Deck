@@ -2,7 +2,8 @@ import "server-only";
 
 import { getWatchup, initWatchup } from "@watchupltd/nextjs/server";
 
-type ServerStage = "billing_checkout" | "billing_webhook" | "founder_profile" | "server_unhandled";
+type ServerStage = "billing_checkout" | "billing_webhook" | "founder_profile" | "server_unhandled"
+  | "profile_save" | "intro_request" | "billing_return" | "simulator_step";
 
 export function initializeWatchup() {
   if (!process.env.WATCHUP_API_KEY) return;
