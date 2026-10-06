@@ -1,4 +1,4 @@
-const PRODUCTION_SITE_URL = "https://pitch-deck.pxxlspace.cv";
+const PRODUCTION_SITE_URL = "https://peekytoe.pxxl.click";
 
 type SiteUrlEnvironment = Record<string, string | undefined>;
 

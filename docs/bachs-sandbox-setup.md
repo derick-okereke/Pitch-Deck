@@ -45,7 +45,7 @@ Apply migrations `202609280013_bachs_billing.sql` and `202609280014_pro_simulato
 The endpoint must be publicly reachable over HTTPS. After the pxxl deployment is available, add this destination in **Developer Portal → Webhooks**:
 
 ```text
-https://pitch-deck.pxxlspace.cv/api/v1/billing/webhook
+https://peekytoe.pxxl.click/api/v1/billing/webhook
 ```
 
 Subscribe to:
@@ -73,7 +73,7 @@ APP_BASE_URL=http://localhost:3000
 pxxl:
 
 ```text
-APP_BASE_URL=https://pitch-deck.pxxlspace.cv
+APP_BASE_URL=https://peekytoe.pxxl.click
 ```
 
 The server supplies `/founder/billing/return` as the success destination and `/founder/billing?checkout=cancelled` as the cancel destination. The success URL carries a `checkout_id`, but that value never grants access by itself.

@@ -42,7 +42,7 @@ test("callback success and failure never redirect to the proxy's localhost origi
   ] as const) {
     const response = await callback({ valid }).get(new Request(`http://localhost:3000/auth/callback${query}`));
     assert.equal(response.status, 307);
-    assert.equal(response.headers.get("location"), `https://pitch-deck.pxxlspace.cv${path}`);
+    assert.equal(response.headers.get("location"), `https://peekytoe.pxxl.click${path}`);
   }
 });
 
@@ -50,19 +50,19 @@ test("PKCE and token-hash recovery reach password update before onboarding", asy
   for (const query of ["?code=test&next=/auth/update-password", "?token_hash=test&type=recovery"]) {
     const route = callback();
     const response = await route.get(new Request(`http://localhost:3000/auth/callback${query}`));
-    assert.equal(response.headers.get("location"), "https://pitch-deck.pxxlspace.cv/auth/update-password");
+    assert.equal(response.headers.get("location"), "https://peekytoe.pxxl.click/auth/update-password");
     assert.equal(route.accountReads(), 0);
   }
 });
 
 test("failed recovery cannot proceed to the password form", async () => {
   const response = await callback({ valid: false }).get(new Request("http://localhost:3000/auth/callback?code=test&next=/auth/update-password"));
-  assert.equal(response.headers.get("location"), "https://pitch-deck.pxxlspace.cv/auth/auth-code-error");
+  assert.equal(response.headers.get("location"), "https://peekytoe.pxxl.click/auth/auth-code-error");
 });
 
 test("missing PKCE verifier directs a confirmed signup to sign in with its requested destination", async () => {
   const response = await callback({ valid: false, errorCode: "pkce_code_verifier_not_found" }).get(
     new Request("http://localhost:3000/auth/callback?code=test&next=/discover"),
   );
-  assert.equal(response.headers.get("location"), "https://pitch-deck.pxxlspace.cv/auth/sign-in?link=session-unavailable&next=%2Fdiscover");
+  assert.equal(response.headers.get("location"), "https://peekytoe.pxxl.click/auth/sign-in?link=session-unavailable&next=%2Fdiscover");
 });
