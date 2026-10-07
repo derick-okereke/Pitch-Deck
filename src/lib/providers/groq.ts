@@ -188,7 +188,7 @@ export async function generatePersonas(input: { sector: string; tagline: string;
     messages: [
       {
         role: "system",
-        content: "Create exactly three distinct fictional AI investor personas for pitch practice. Never use a real person, celebrity, public figure, or named real-firm affiliation. Use generic role titles. Assign p1 to Adaeze Okoro (Nigerian), p2 to Tunde Afolayan (Nigerian), and p3 to Elena Moreau (European). Each focus must be materially different and relevant to the supplied sector, tagline, and stage. Return schema only.",
+        content: "Create exactly three distinct fictional AI investor personas for pitch practice. Never use a real person, celebrity, public figure, or named real-firm affiliation. Use generic role titles. Assign p1 to Alice Morgan, p2 to James Bennett, and p3 to Sophie Clarke. Each focus must be materially different and relevant to the supplied sector, tagline, and stage. Return schema only.",
       },
       { role: "user", content: JSON.stringify(input) },
     ],
@@ -201,9 +201,9 @@ export async function generatePersonas(input: { sector: string; tagline: string;
   if (!content) throw new Error("Groq returned an empty persona response.");
   const personas = simulatorPersonasSchema.parse(JSON.parse(content)).personas;
   const identities = {
-    p1: { name: "Adaeze Okoro", voice_style: "warm-rigorous" },
-    p2: { name: "Tunde Afolayan", voice_style: "direct-analytical" },
-    p3: { name: "Elena Moreau", voice_style: "calm-strategic" },
+    p1: { name: "Alice Morgan", voice_style: "warm-rigorous" },
+    p2: { name: "James Bennett", voice_style: "direct-analytical" },
+    p3: { name: "Sophie Clarke", voice_style: "calm-strategic" },
   } as const;
   return personas.map((persona) => ({ ...persona, ...identities[persona.persona_key] }));
 }

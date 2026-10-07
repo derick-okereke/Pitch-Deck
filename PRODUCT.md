@@ -25,7 +25,7 @@ web
 <!-- Stack question: framework/stack, when not already fixed by an existing codebase -->
 ## Stack
 
-Next.js (React, TypeScript) end-to-end — one codebase, API routes double as the backend. Supabase (Postgres, auth, storage). Groq for LLM calls (persona generation, Q&A, scoring) and Whisper STT. Azure Speech for TTS. Tailwind CSS, themed via the exported Stitch design system (see DESIGN.md). three.js with the WebGPU renderer and TSL, scoped to one contained scene (the AI Pitch Simulator's boardroom) rather than used app-wide. PostHog for interaction analytics (free tier). Three tools are compulsory for the hackathon regardless of the rest of the stack: pxxl (deployment), WatchUp (monitoring/error tracking), Bachs (payments). This was a direct user decision, not delegated.
+Next.js (React, TypeScript) end-to-end — one codebase, API routes double as the backend. Supabase (Postgres, auth, storage). Groq for LLM calls (persona generation, Q&A, scoring) and Whisper STT. ElevenLabs for TTS. Tailwind CSS, themed via the exported Stitch design system (see DESIGN.md). three.js with the WebGPU renderer and TSL, scoped to one contained scene (the AI Pitch Simulator's boardroom) rather than used app-wide. PostHog for interaction analytics (free tier). Three tools are compulsory for the hackathon regardless of the rest of the stack: pxxl (deployment), WatchUp (monitoring/error tracking), Bachs (payments). This was a direct user decision, not delegated.
 
 <!-- Interview question: who the primary user is, their situation, and the job they're doing -->
 ## Users
