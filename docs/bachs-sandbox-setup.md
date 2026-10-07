@@ -42,10 +42,10 @@ Apply migrations `202609280013_bachs_billing.sql` and `202609280014_pro_simulato
 
 ## 5. Create the webhook destination
 
-The endpoint must be publicly reachable over HTTPS. After the pxxl deployment is available, add this destination in **Developer Portal → Webhooks**:
+The endpoint must be publicly reachable over HTTPS. Use one healthy deployment as the webhook destination. While Pxxl cannot deploy, use Vercel:
 
 ```text
-https://peekytoe.pxxl.click/api/v1/billing/webhook
+https://peekytoeapp.vercel.app/api/v1/billing/webhook
 ```
 
 Subscribe to:
@@ -58,7 +58,7 @@ Subscribe to:
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
 
-Copy the endpoint signing secret into `.env.local` and the pxxl server environment as `BACHS_WEBHOOK_SECRET`. Bachs sends `X-Bachs-Signature-V2`; the handler also supports the documented legacy signature headers during migration.
+Copy the endpoint signing secret into `.env.local` and the selected host's server environment as `BACHS_WEBHOOK_SECRET`. Bachs sends `X-Bachs-Signature-V2`; the handler also supports the documented legacy signature headers during migration.
 
 For local webhook work, use Bachs's documented local forwarding flow. Do not set a localhost webhook URL in the dashboard because Bachs cannot reach it directly.
 
@@ -70,7 +70,13 @@ Local development:
 APP_BASE_URL=http://localhost:3000
 ```
 
-pxxl:
+Vercel:
+
+```text
+APP_BASE_URL=https://peekytoeapp.vercel.app
+```
+
+Pxxl, when active:
 
 ```text
 APP_BASE_URL=https://peekytoe.pxxl.click

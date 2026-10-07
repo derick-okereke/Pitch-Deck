@@ -1,3 +1,7 @@
-<h2>Confirm your Peekytoe email</h2>
-<p>Choose the link below, then press “Confirm email and continue” to activate your account.</p>
+<h2>Confirm your email</h2>
+<p>Choose the link below, then click “Confirm email and continue” to activate your account.</p>
+{{ if eq .RedirectTo "https://peekytoeapp.vercel.app" }}
+<p><a href="{{ .RedirectTo }}/auth/confirm?token_hash={{ .TokenHash }}">Confirm your email</a></p>
+{{ else }}
 <p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}">Confirm your email</a></p>
+{{ end }}

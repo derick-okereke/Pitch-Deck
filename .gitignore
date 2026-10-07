@@ -9,3 +9,4 @@ out/
 .impeccable/mocks/
 .impeccable/config.local.json
 supabase/.temp/
+.vercel/

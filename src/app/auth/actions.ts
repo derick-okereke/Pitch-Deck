@@ -52,7 +52,9 @@ export async function signUp(_state: AuthFormState, formData: FormData): Promise
     email: normalizedEmail,
     password: parsed.data.password,
     options: {
-      emailRedirectTo: `${authEmailRedirectOrigin()}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
+      // The confirmation email template appends /auth/confirm to this origin.
+      // Keep the destination on the deployment where signup started.
+      emailRedirectTo: authEmailRedirectOrigin(),
       data: { display_name: parsed.data.displayName, role: parsed.data.role },
     },
   });
