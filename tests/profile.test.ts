@@ -8,7 +8,7 @@ import {
   minorToMajor,
   reviewableFounderDraftSchema,
 } from "../src/lib/profile.ts";
-import { validateAndScoreProfileReview } from "../src/lib/profile-review.ts";
+import { profileReviewFailureCode, validateAndScoreProfileReview } from "../src/lib/profile-review.ts";
 
 const completeProfile = {
   ...defaultFounderDraft,
@@ -143,7 +143,10 @@ test("calculates the canonical 90-point content maximum on the server", () => {
 test("rejects model evidence that is not in the submitted field", () => {
   const review = validReview();
   review.categories[0].evidence[0].quote = "invented customer claim" as typeof review.categories[0]["evidence"][0]["quote"];
-  assert.throws(() => validateAndScoreProfileReview(review, completeProfile), /not present/);
+  assert.throws(() => validateAndScoreProfileReview(review, completeProfile), (error) => {
+    assert.equal(profileReviewFailureCode(error), "evidence_mismatch");
+    return true;
+  });
 });
 
 test("rejects duplicate category keys even when the schema shape is valid", () => {

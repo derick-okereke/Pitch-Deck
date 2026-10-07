@@ -11,6 +11,7 @@ import {
   founderDraftSchema,
   reviewableFounderDraftSchema,
 } from "@/lib/profile";
+import { profileReviewFailureCode } from "@/lib/profile-review";
 import type { ProfileActionState } from "@/lib/profile-action-state";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -33,6 +34,7 @@ function reviewFailureDiagnostic(error: unknown) {
     errorName: error instanceof Error ? error.name : "ProviderError",
     status: typeof details.status === "number" ? details.status : undefined,
     code: typeof code === "string" ? code : undefined,
+    failureCode: profileReviewFailureCode(error),
   };
 }
 

@@ -40,6 +40,20 @@ export const profileReviewOutputSchema = z.object({
 
 export type ProfileReviewOutput = z.infer<typeof profileReviewOutputSchema>;
 
+export function profileReviewFailureCode(error: unknown) {
+  if (!(error instanceof Error)) return "unknown";
+  if (error.name === "ZodError") return "schema_validation_failed";
+  if (error instanceof SyntaxError) return "invalid_json";
+  if (error.message === "The review did not contain exactly one rating for each category.") return "duplicate_categories";
+  if (/^The (clarity|market|traction|team|business_model|competition) rating has no supporting evidence\.$/.test(error.message)) return "missing_evidence";
+  if (error.message === "The review cited evidence that is not present in the submitted profile.") return "evidence_mismatch";
+  if (error.message === "The review flagged an unknown profile field.") return "unknown_flag_field";
+  if (error.message === "Groq returned an empty profile review response.") return "empty_response";
+  if (error.message === "Groq is not configured.") return "provider_not_configured";
+  if (error.message === "fetch failed") return "transport_failure";
+  return "unknown";
+}
+
 export const profileReviewJsonSchema = {
   type: "object",
   properties: {
