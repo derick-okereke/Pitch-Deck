@@ -270,7 +270,7 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
             </div></section>
 
             {hasSubmissionFeedback ? <div className="form-feedback" ref={feedbackRef} tabIndex={-1}>
-              {state.status === "conflict" || (state.status === "error" && !hasFieldErrors) ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>{state.status === "conflict" ? "This draft changed elsewhere." : "The profile needs attention."}</strong><p>{state.message}</p></div></div> : null}
+              {state.status === "conflict" || (state.status === "error" && !hasFieldErrors) ? <div className="persistent-error" role="alert"><CircleAlert size={18} /><div><strong>{state.status === "conflict" ? "This draft changed elsewhere." : "The profile needs attention."}</strong><p>{state.message}</p>{state.reviewId ? <Link href={`/founder/reviews/${state.reviewId}`}>Open review status</Link> : null}</div></div> : null}
               {errors && Object.keys(errors).length ? <div className="validation-summary" role="alert"><strong>Review {Object.keys(errors).length} field{Object.keys(errors).length === 1 ? "" : "s"} before continuing.</strong><ul>{Object.values(errors).map((error) => <li key={error}>{error}</li>)}</ul></div> : null}
               {state.status === "review_ready" && state.reviewId ? <div className="submission-banner" role="status"><ShieldCheck size={19} /><div><strong>Review complete.</strong><p>{state.message}</p></div><Link href={`/founder/reviews/${state.reviewId}`}>Open review</Link></div> : null}
             </div> : null}

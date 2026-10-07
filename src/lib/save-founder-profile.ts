@@ -23,6 +23,19 @@ function isVersionConflict(message: string | undefined) {
   return message?.includes("DRAFT_VERSION_CONFLICT") ?? false;
 }
 
+function reviewFailureDiagnostic(error: unknown) {
+  if (!error || typeof error !== "object") return { errorName: "UnknownError" };
+  const details = error as Record<string, unknown>;
+  const body = details.error && typeof details.error === "object" ? details.error as Record<string, unknown> : null;
+  const providerError = body?.error && typeof body.error === "object" ? body.error as Record<string, unknown> : null;
+  const code = providerError?.code ?? details.code;
+  return {
+    errorName: error instanceof Error ? error.name : "ProviderError",
+    status: typeof details.status === "number" ? details.status : undefined,
+    code: typeof code === "string" ? code : undefined,
+  };
+}
+
 export async function saveFounderProfile(formData: FormData): Promise<ProfileActionState> {
   const account = await getCurrentAccount();
   if (!account || account.role !== "founder") {
@@ -149,7 +162,7 @@ export async function saveFounderProfile(formData: FormData): Promise<ProfileAct
       reviewId: review.review_id,
     };
   } catch (error) {
-    console.error("Profile review provider failed", { reviewId: review.review_id, error });
+    console.error("Profile review failed", { reviewId: review.review_id, ...reviewFailureDiagnostic(error) });
     try {
       await admin.rpc("fail_profile_review", { p_review_id: review.review_id, p_error_code: "PROVIDER_UNAVAILABLE" });
     } catch {
