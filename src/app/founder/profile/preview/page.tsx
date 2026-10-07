@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, AudioLines, Eye, FilePenLine, Info, MapPin } from "lucide-react";
+import { ArrowLeft, ArrowRight, AudioLines, Check, Eye, FilePenLine, Info, MapPin } from "lucide-react";
 import { z } from "zod";
 import { getFounderWorkspace } from "@/lib/founder-profile";
 import { getCurrentFounderReview } from "@/lib/founder-review-data";
@@ -43,8 +43,10 @@ export default async function ProfilePreview({ searchParams }: { searchParams: P
   const supabase = await createClient();
   let draft = workspace.draft;
   let revisionNumber: number | null = null;
+  let reviewedRevisionId: string | null = null;
   let review: { id: string; content_points: number | null; ratings: unknown; completed_at: string | null; state: string } | null = null;
-  const showPublished = requested === "published" && Boolean(workspace.publishedRevisionId);
+  const hasPublishedProfile = workspace.publicationStatus === "published" && Boolean(workspace.publishedRevisionId);
+  const showPublished = requested === "published" && hasPublishedProfile;
 
   if (showPublished && workspace.publishedRevisionId) {
     const { data: revision } = await supabase.from("profile_revisions").select("id, revision_number, payload").eq("id", workspace.publishedRevisionId).maybeSingle();
@@ -52,12 +54,14 @@ export default async function ProfilePreview({ searchParams }: { searchParams: P
     if (revision && parsed.success) {
       draft = parsed.data;
       revisionNumber = revision.revision_number;
+      reviewedRevisionId = revision.id;
       const { data } = await supabase.from("profile_reviews").select("id, content_points, ratings, completed_at, state").eq("revision_id", revision.id).eq("rubric_version", "readiness-v1").maybeSingle();
       review = data;
     }
   } else {
     const currentReview = await getCurrentFounderReview(workspace);
     revisionNumber = currentReview?.revisionNumber ?? null;
+    reviewedRevisionId = currentReview?.revisionId ?? null;
     review = currentReview;
   }
 
@@ -69,12 +73,27 @@ export default async function ProfilePreview({ searchParams }: { searchParams: P
   const displayScore = contentPoints === null ? null : readiness?.displayReadiness ?? Math.floor(contentPoints + 0.5);
   const location = [draft.city, countryNames[draft.country] ?? draft.country].filter(Boolean).join(", ");
   const modeLabel = showPublished ? `Published revision ${revisionNumber ?? ""}` : `Draft version ${workspace.draftVersion}`;
+  const publishedContent = hasPublishedProfile && reviewedRevisionId === workspace.publishedRevisionId;
+  const reviewStatus = publishedContent ? "Published in discovery" : review?.state === "passed" ? "Passed review · Private" : review?.state === "needs_improvement" ? "Needs improvement" : review?.state === "reviewing" ? "Review in progress" : review?.state === "review_failed" ? "Review interrupted" : "Not reviewed yet";
 
   return (
     <main className="preview-page">
-      <div className="preview-banner"><div><Eye size={18} /><span><strong>Investor preview</strong> · {modeLabel}</span></div><p>Private coaching notes, contact details, and simulator Q&A are never shown here.</p><Link href="/founder/reviews">Reviews</Link><Link href="/founder/profile/edit"><FilePenLine size={15} /> Edit draft</Link></div>
-      {review ? <div className="preview-review-actions"><span>{review.state === "passed" ? "This content passed review." : review.state === "needs_improvement" ? "This content needs improvement before publication." : "This content has a review in progress or awaiting retry."} {!showPublished && workspace.publicationStatus !== "published" ? "Your profile is still private." : ""}</span><Link className="button button-light" href={`/founder/reviews/${review.id}`}>{review.state === "passed" && !showPublished ? "View review and publication options" : "View review"}</Link></div> : null}
-      {workspace.publishedRevisionId ? <nav className="preview-switcher" aria-label="Preview revision"><Link aria-current={!showPublished ? "page" : undefined} href="/founder/profile/preview?revision=draft">Current draft</Link><Link aria-current={showPublished ? "page" : undefined} href="/founder/profile/preview?revision=published">Published profile</Link></nav> : null}
+      <section className="preview-toolbar" aria-label="Preview controls">
+        <div className="preview-toolbar-top">
+          <div className="preview-toolbar-title"><Eye size={18} aria-hidden="true" /><strong>Investor preview</strong><span>{modeLabel}</span></div>
+          <div className="preview-toolbar-actions">
+            <Link href="/founder/profile/edit"><FilePenLine size={15} aria-hidden="true" /> Edit draft</Link>
+            <Link className="preview-review-link" href={review ? `/founder/reviews/${review.id}` : "/founder/reviews"}>{review ? "View review" : "Review history"}<ArrowRight size={16} aria-hidden="true" /></Link>
+          </div>
+        </div>
+        <div className="preview-toolbar-bottom">
+          {hasPublishedProfile ? <nav className="preview-tabs" aria-label="Preview revision"><Link aria-current={!showPublished ? "page" : undefined} href="/founder/profile/preview?revision=draft">Current draft</Link><Link aria-current={showPublished ? "page" : undefined} href="/founder/profile/preview?revision=published">Published profile</Link></nav> : null}
+          <div className={`preview-toolbar-status ${publishedContent ? "is-published" : ""}`}>
+            {review?.state === "passed" ? <Check size={15} aria-hidden="true" /> : null}<span>{reviewStatus}</span>
+          </div>
+          <details className="preview-privacy"><summary><Info size={15} aria-hidden="true" /> What investors can see</summary><p>This preview shows your profile and readiness evidence. Private coaching notes, contact details, and simulator Q&A stay private. Only a published revision appears in discovery.</p></details>
+        </div>
+      </section>
       <section className="founder-preview-hero">
         <Link className="back-link" href="/founder"><ArrowLeft size={15} /> Founder overview</Link>
         <div className="preview-hero-grid"><div><p className="preview-context">{showPublished ? "Investor-visible profile" : "Private draft preview"} · {draft.sector.replaceAll("-", " ")} · {draft.stage}</p><h1>{draft.name}</h1><p>{draft.tagline}</p><div className="detail-meta"><span><MapPin size={15} />{location}</span><span>Raising <strong>{money(draft.ask_amount_minor, draft.ask_currency)}</strong></span></div></div><aside className="score-panel">{displayScore === null ? <div className="score-unreviewed"><strong>—</strong><span>Not reviewed</span></div> : <div className="score-ring" style={{ "--score": `${displayScore * 3.6}deg` } as React.CSSProperties}><div><strong>{displayScore}</strong><span>/ 100</span></div></div>}<p>Pitch-Readiness Score</p><span className="score-date">{review?.completed_at ? `Content assessed ${new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" }).format(new Date(review.completed_at))}` : "Submit this draft for review"}</span></aside></div>
