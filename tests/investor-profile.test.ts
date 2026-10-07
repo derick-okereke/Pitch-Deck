@@ -33,6 +33,12 @@ test("rejects an inverted cheque range and non-LinkedIn professional URL", () =>
   }
 });
 
+test("returns a field error for a nonnumeric cheque amount", () => {
+  const result = investorProfileSchema.safeParse({ ...valid, check_min_minor: "None yet" });
+  assert.equal(result.success, false);
+  if (!result.success) assert.ok(result.error.issues.some((issue) => issue.path[0] === "check_min_minor"));
+});
+
 test("rejects investor profiles without a sector or stage", () => {
   assert.equal(investorProfileSchema.safeParse({ ...valid, sectors: [] }).success, false);
   assert.equal(investorProfileSchema.safeParse({ ...valid, stages: [] }).success, false);

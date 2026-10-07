@@ -32,11 +32,15 @@ function text(min: number, max: number, label: string, singleLine = false) {
 
 const optionalText = (max: number, label: string) => text(0, max, label);
 const optionalCount = z.union([z.literal(""), z.coerce.number().int().min(0).max(1_000_000_000)]);
+const minorUnits = (value: string) => /^\d+$/.test(value) ? BigInt(value) : null;
 const optionalMoney = z.union([
   z.literal(""),
   z.string()
     .regex(/^\d+$/, "Enter a valid amount with no more than two decimal places.")
-    .refine((value) => BigInt(value) <= BigInt("100000000000000"), "The amount is above the supported maximum."),
+    .refine((value) => {
+      const amount = minorUnits(value);
+      return amount === null || amount <= BigInt("100000000000000");
+    }, "The amount is above the supported maximum."),
 ]);
 
 export const teamMemberSchema = z.object({
@@ -100,7 +104,7 @@ export const founderDraftSchema = z.object({
   if (marketValues.some(Boolean) && !profile.market.currency) {
     context.addIssue({ code: "custom", path: ["market", "currency"], message: "Choose a currency for the market figures." });
   }
-  const [tam, sam, som] = marketValues.map((value) => value === "" ? null : BigInt(value));
+  const [tam, sam, som] = marketValues.map(minorUnits);
   if (tam !== null && sam !== null && tam < sam) context.addIssue({ code: "custom", path: ["market", "tam_minor"], message: "TAM must be greater than or equal to SAM." });
   if (sam !== null && som !== null && sam < som) context.addIssue({ code: "custom", path: ["market", "sam_minor"], message: "SAM must be greater than or equal to SOM." });
 });
@@ -114,7 +118,8 @@ export const reviewableFounderDraftSchema = founderDraftSchema.superRefine((prof
   requireLength(profile.problem, 50, ["problem"], "Add at least 50 characters explaining the customer, pain, and consequence.");
   requireLength(profile.solution, 50, ["solution"], "Add at least 50 characters explaining what the solution does and why it helps.");
   requireLength(profile.use_of_funds, 30, ["use_of_funds"], "Add at least 30 characters connecting the funding ask to milestones.");
-  if (!profile.ask_amount_minor || BigInt(profile.ask_amount_minor) <= BigInt(0)) {
+  const askAmount = minorUnits(profile.ask_amount_minor);
+  if (profile.ask_amount_minor === "" || (askAmount !== null && askAmount <= BigInt(0))) {
     context.addIssue({ code: "custom", path: ["ask_amount_minor"], message: "Enter a funding ask greater than zero." });
   }
   if (profile.team.length < 1) {

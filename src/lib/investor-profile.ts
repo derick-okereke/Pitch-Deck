@@ -25,8 +25,12 @@ export const investorTypeLabels: Record<(typeof investorTypes)[number], string> 
 };
 
 const optionalText = (max: number) => z.string().trim().max(max).transform((value) => value || null);
+const minorUnits = (value: string) => /^\d+$/.test(value) ? BigInt(value) : null;
 const money = z.string().regex(/^\d+$/, "Enter a whole-number amount.")
-  .refine((value) => BigInt(value) <= BigInt("100000000000000"), "The amount is above the supported maximum.");
+  .refine((value) => {
+    const amount = minorUnits(value);
+    return amount === null || amount <= BigInt("100000000000000");
+  }, "The amount is above the supported maximum.");
 
 export const investorProfileSchema = z.object({
   full_name: z.string().trim().min(2, "Enter your full name.").max(80),
@@ -49,7 +53,9 @@ export const investorProfileSchema = z.object({
     }, "Use an HTTPS linkedin.com/in or linkedin.com/company URL."),
   ]),
 }).strict().superRefine((profile, context) => {
-  if (BigInt(profile.check_min_minor) > BigInt(profile.check_max_minor)) {
+  const minimum = minorUnits(profile.check_min_minor);
+  const maximum = minorUnits(profile.check_max_minor);
+  if (minimum !== null && maximum !== null && minimum > maximum) {
     context.addIssue({ code: "custom", path: ["check_max_minor"], message: "Maximum cheque must be at least the minimum." });
   }
 });

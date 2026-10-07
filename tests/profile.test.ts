@@ -101,6 +101,22 @@ test("enforces market hierarchy without inventing currency conversion", () => {
   if (!result.success) assert.ok(result.error.issues.some((issue) => issue.path.join(".") === "market.tam_minor"));
 });
 
+test("returns field errors for text entered in money fields instead of throwing", () => {
+  const result = reviewableFounderDraftSchema.safeParse({
+    ...completeProfile,
+    ask_amount_minor: "None yet",
+    market: { ...completeProfile.market, tam_minor: "None yet" },
+    traction: { ...completeProfile.traction, monthly_revenue_minor: "None yet" },
+  });
+  assert.equal(result.success, false);
+  if (!result.success) {
+    const paths = result.error.issues.map((issue) => issue.path.join("."));
+    assert.ok(paths.includes("ask_amount_minor"));
+    assert.ok(paths.includes("market.tam_minor"));
+    assert.ok(paths.includes("traction.monthly_revenue_minor"));
+  }
+});
+
 test("converts display money to integer minor-unit transport", () => {
   assert.equal(majorToMinor("250,000"), "25000000");
   assert.equal(majorToMinor("19.95"), "1995");

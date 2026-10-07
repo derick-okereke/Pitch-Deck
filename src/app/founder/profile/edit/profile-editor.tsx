@@ -76,7 +76,12 @@ function TractionFields({ draft, stage, errors }: { draft: FounderDraft; stage: 
         <label>Growth %<input name="traction.growth_pct" type="number" min="-100" max="10000" step="0.1" defaultValue={draft.traction.growth_pct} /></label>
         <label>Retention %<input name="traction.retention_pct" type="number" min="0" max="100" step="0.1" defaultValue={draft.traction.retention_pct} /></label>
       </div> : null}
-      <FieldError id="traction-error" error={errorFor(errors, "traction.evidence_note", "traction.interview_count", "traction.active_user_count", "traction.mrr_minor")} />
+      <FieldError id="traction-error" error={errorFor(errors,
+        "traction.evidence_note", "traction.interview_count", "traction.waitlist_count", "traction.loi_count",
+        "traction.active_user_count", "traction.pilot_count", "traction.monthly_revenue_minor",
+        "traction.mrr_minor", "traction.arr_minor", "traction.revenue_currency",
+        "traction.growth_pct", "traction.retention_pct", "traction.measurement_period",
+      )} />
     </>
   );
 }
