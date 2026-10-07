@@ -42,7 +42,7 @@ export default async function FounderDashboard() {
           <h1>Welcome, {firstName}.</h1>
           <p>Your private founder workspace{account.organizationName ? ` for ${account.organizationName}` : ""} is ready.</p>
         </div>
-        <Link className="button button-light" href="/founder/reviews">View reviews</Link><Link className="button button-light" href="/founder/profile/edit"><FilePenLine size={16} /> {workspace.startupId ? "Edit founder profile" : "Start founder profile"}</Link>
+        <Link className="button button-light" href="/founder/profile/edit"><FilePenLine size={16} /> {workspace.startupId ? "Edit founder profile" : "Start founder profile"}</Link>
       </section>
 
       <section className="next-action-panel">
@@ -77,7 +77,10 @@ export default async function FounderDashboard() {
             <div><dt>Member since</dt><dd>{shortDate(account.createdAt)}</dd></div>
             <div><dt>Owner</dt><dd>{account.displayName}</dd></div>
           </dl>
-          <Link className="button button-light" href="/founder/profile/edit"><FilePenLine size={16} /> Open profile editor</Link>
+          <div className="workspace-card-actions">
+            <Link className="button button-light" href="/founder/profile/edit"><FilePenLine size={16} /> Open profile editor</Link>
+            <Link className="button button-light" href="/founder/reviews">View reviews</Link>
+          </div>
         </article>
 
         <article className="dashboard-activity-card">

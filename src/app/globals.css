@@ -782,6 +782,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .persistent-error.compact { max-width: 620px; margin: 18px 0 0; }
 .review-history-list { list-style: none; padding: 0; margin: 0 0 24px; }
 .review-history-summary .review-summary-grid { grid-template-columns: 1fr; }
+.review-summary-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin-bottom: clamp(34px, 4vw, 44px); }
+.review-summary .review-summary-nav .back-link { margin: 0; }
+.workspace-card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
 .review-history-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid #dfe3e8; }
 .preview-review-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 32px; border-bottom: 1px solid #dfe3e8; }
 .publish-review-control { display: grid; gap: 12px; }

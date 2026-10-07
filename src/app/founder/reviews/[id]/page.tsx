@@ -84,8 +84,10 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   return (
     <main className="review-page">
       <section className="review-summary">
-        <Link className="back-link" href="/founder"><ArrowLeft size={15} /> Founder overview</Link>
-        <Link className="back-link" href="/founder/reviews">All reviews</Link>
+        <nav className="review-summary-nav" aria-label="Review navigation">
+          <Link className="back-link" href="/founder"><ArrowLeft size={15} /> Founder overview</Link>
+          <Link className="back-link" href="/founder/reviews">All reviews</Link>
+        </nav>
         <div className="review-summary-grid"><div><p className="review-context">Profile review · Revision {revision.revision_number}</p><span className={`status-tag ${published ? "status-published" : "status-reviewed"}`}>{passed ? <Check size={13} /> : <CircleAlert size={13} />}{published ? "Passed and published" : passed ? "Passed" : "Needs improvement"}</span><h1>{headline}</h1><p>{reviewedEarlierDraft ? "This result belongs to an earlier draft. Your current draft remains separate and was not overwritten." : "Every category below cites only evidence from the submitted revision. The model did not set the total or publication threshold."}</p></div><div className="review-score"><strong>{displayScore}</strong><span>readiness points / 100</span><small>{review.content_points}/90 content · {readiness?.deliveryContribution ?? 0}/10 delivery · Publish at 50 content</small></div></div>
       </section>
       <section className="review-layout">
