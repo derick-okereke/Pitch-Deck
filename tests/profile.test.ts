@@ -9,6 +9,7 @@ import {
   reviewableFounderDraftSchema,
 } from "../src/lib/profile.ts";
 import { profileReviewFailureCode, validateAndScoreProfileReview } from "../src/lib/profile-review.ts";
+import { createProfileReviewRequest } from "../src/lib/profile-review-request.ts";
 
 const completeProfile = {
   ...defaultFounderDraft,
@@ -174,4 +175,54 @@ test("accepts a provider flag for an empty known field", () => {
   review.flags.push({ field: "market.sources", code: "missing_evidence", message: "No source citations were submitted for the market figures." } as never);
   const result = validateAndScoreProfileReview(review, completeProfile);
   assert.equal(result.flags[0].field, "market.sources");
+});
+
+test("grounds selected evidence IDs in exact draft excerpts and saves a complete score", () => {
+  const profile = {
+    ...completeProfile,
+    market: { ...completeProfile.market, explanation: "Retailers’ purchasing budgets define the reachable market.\nOur pilot targets a limited local segment." },
+    traction: { ...completeProfile.traction, evidence_note: "Six retailers said: ‘Delivery timing matters.’ We have not yet measured repeat purchasing." },
+  };
+  const request = createProfileReviewRequest(profile);
+  const response = {
+    schema_version: "1",
+    categories: Object.fromEntries(Object.entries(request.input.evidence_choices).map(([key, choices]) => [key, {
+      rating: 4,
+      rationale: "The submitted evidence is specific and acknowledges the limits of the current operating assumptions.",
+      evidence_id: choices[0].id,
+      next_step: "Add a dated measurement from the next operating pilot.",
+    }])),
+    flags: [],
+  };
+  const result = request.validate(response);
+  assert.equal(result.contentPoints, 90);
+  assert.equal(result.categories.length, 6);
+  for (const category of result.categories) {
+    const choice = request.input.evidence_choices[category.key][0];
+    assert.deepEqual(category.evidence, [{ source_field: choice.source_field, quote: choice.quote }]);
+  }
+  response.categories.clarity.evidence_id = request.input.evidence_choices.team[0].id;
+  assert.throws(() => request.validate(response), /unknown evidence ID/);
+});
+
+test("keeps long evidence excerpts verbatim and forces blank categories to remain unscored", () => {
+  const request = createProfileReviewRequest({ ...completeProfile, problem: "A long sentence with punctuation; and whitespace. ".repeat(35) });
+  for (const choice of request.input.evidence_choices.clarity.filter((item) => item.source_field === "problem")) {
+    assert.ok(("A long sentence with punctuation; and whitespace. ".repeat(35)).includes(choice.quote));
+    assert.ok(choice.quote.length <= 180);
+  }
+  const response = {
+    schema_version: "1",
+    categories: Object.fromEntries(Object.entries(request.input.evidence_choices).map(([key, choices]) => [key, {
+      rating: choices.length ? 2 : 0,
+      rationale: "The available material provides some relevant detail but leaves important operating assumptions untested.",
+      evidence_id: choices[0]?.id ?? null,
+      next_step: "Add a dated measurement from the next operating pilot.",
+    }])),
+    flags: [],
+  };
+  const result = request.validate(response);
+  assert.equal(result.categories.find((category) => category.key === "market")?.rating, 0);
+  response.categories.market.rating = 3;
+  assert.throws(() => request.validate(response), /no supporting evidence/);
 });

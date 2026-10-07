@@ -47,6 +47,7 @@ export function profileReviewFailureCode(error: unknown) {
   if (error.message === "The review did not contain exactly one rating for each category.") return "duplicate_categories";
   if (/^The (clarity|market|traction|team|business_model|competition) rating has no supporting evidence\.$/.test(error.message)) return "missing_evidence";
   if (error.message === "The review cited evidence that is not present in the submitted profile.") return "evidence_mismatch";
+  if (error.message === "The review selected an unknown evidence ID.") return "unknown_evidence_id";
   if (error.message === "The review flagged an unknown profile field.") return "unknown_flag_field";
   if (error.message === "Groq returned an empty profile review response.") return "empty_response";
   if (error.message === "Groq is not configured.") return "provider_not_configured";
