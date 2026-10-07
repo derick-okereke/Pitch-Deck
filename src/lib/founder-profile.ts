@@ -21,6 +21,7 @@ export async function getFounderWorkspace(): Promise<FounderWorkspace> {
   const { data, error } = await supabase
     .from("startups")
     .select("id, draft_payload, draft_version, publication_status, published_revision_id")
+    .eq("founder_id", ownerId)
     .maybeSingle();
 
   if (error) {

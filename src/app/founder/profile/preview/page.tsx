@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, AudioLines, Eye, FilePenLine, Info, MapPin } from "lucide-react";
 import { z } from "zod";
 import { getFounderWorkspace } from "@/lib/founder-profile";
+import { getCurrentFounderReview } from "@/lib/founder-review-data";
 import { founderDraftSchema, minorToMajor } from "@/lib/profile";
 import { profileCategoryWeights } from "@/lib/profile-review";
 import { getPublishedReadiness } from "@/lib/readiness-data";
@@ -42,7 +43,7 @@ export default async function ProfilePreview({ searchParams }: { searchParams: P
   const supabase = await createClient();
   let draft = workspace.draft;
   let revisionNumber: number | null = null;
-  let review: { content_points: number | null; ratings: unknown; completed_at: string | null; state: string } | null = null;
+  let review: { id: string; content_points: number | null; ratings: unknown; completed_at: string | null; state: string } | null = null;
   const showPublished = requested === "published" && Boolean(workspace.publishedRevisionId);
 
   if (showPublished && workspace.publishedRevisionId) {
@@ -51,20 +52,17 @@ export default async function ProfilePreview({ searchParams }: { searchParams: P
     if (revision && parsed.success) {
       draft = parsed.data;
       revisionNumber = revision.revision_number;
-      const { data } = await supabase.from("profile_reviews").select("content_points, ratings, completed_at, state").eq("revision_id", revision.id).eq("rubric_version", "readiness-v1").maybeSingle();
+      const { data } = await supabase.from("profile_reviews").select("id, content_points, ratings, completed_at, state").eq("revision_id", revision.id).eq("rubric_version", "readiness-v1").maybeSingle();
       review = data;
     }
   } else {
-    const { data: revision } = await supabase.from("profile_revisions").select("id, revision_number").eq("startup_id", workspace.startupId).eq("draft_version", workspace.draftVersion).maybeSingle();
-    if (revision) {
-      revisionNumber = revision.revision_number;
-      const { data } = await supabase.from("profile_reviews").select("content_points, ratings, completed_at, state").eq("revision_id", revision.id).eq("rubric_version", "readiness-v1").maybeSingle();
-      review = data;
-    }
+    const currentReview = await getCurrentFounderReview(workspace);
+    revisionNumber = currentReview?.revisionNumber ?? null;
+    review = currentReview;
   }
 
   const ratings = publicRatingsSchema.safeParse(review?.ratings);
-  const contentPoints = review?.state === "passed" && review.content_points !== null ? review.content_points : null;
+  const contentPoints = review && ["passed", "needs_improvement"].includes(review.state) ? review.content_points : null;
   const readiness = showPublished && workspace.publishedRevisionId && contentPoints !== null
     ? await getPublishedReadiness({ founderId: workspace.ownerId, startupId: workspace.startupId, revisionId: workspace.publishedRevisionId, contentPoints })
     : null;
@@ -74,7 +72,8 @@ export default async function ProfilePreview({ searchParams }: { searchParams: P
 
   return (
     <main className="preview-page">
-      <div className="preview-banner"><div><Eye size={18} /><span><strong>Investor preview</strong> · {modeLabel}</span></div><p>Private coaching notes, contact details, and simulator Q&A are never shown here.</p><Link href="/founder/profile/edit"><FilePenLine size={15} /> Edit draft</Link></div>
+      <div className="preview-banner"><div><Eye size={18} /><span><strong>Investor preview</strong> · {modeLabel}</span></div><p>Private coaching notes, contact details, and simulator Q&A are never shown here.</p><Link href="/founder/reviews">Reviews</Link><Link href="/founder/profile/edit"><FilePenLine size={15} /> Edit draft</Link></div>
+      {review ? <div className="preview-review-actions"><span>{review.state === "passed" ? "This content passed review." : review.state === "needs_improvement" ? "This content needs improvement before publication." : "This content has a review in progress or awaiting retry."} {!showPublished && workspace.publicationStatus !== "published" ? "Your profile is still private." : ""}</span><Link className="button button-light" href={`/founder/reviews/${review.id}`}>{review.state === "passed" && !showPublished ? "View review and publication options" : "View review"}</Link></div> : null}
       {workspace.publishedRevisionId ? <nav className="preview-switcher" aria-label="Preview revision"><Link aria-current={!showPublished ? "page" : undefined} href="/founder/profile/preview?revision=draft">Current draft</Link><Link aria-current={showPublished ? "page" : undefined} href="/founder/profile/preview?revision=published">Published profile</Link></nav> : null}
       <section className="founder-preview-hero">
         <Link className="back-link" href="/founder"><ArrowLeft size={15} /> Founder overview</Link>

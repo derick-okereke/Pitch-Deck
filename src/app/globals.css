@@ -780,6 +780,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .persistent-error svg { flex: none; margin-top: 2px; }
 .persistent-error strong { font-size: 14px; }.persistent-error p { margin: 4px 0 0; font-size: 13px; line-height: 1.5; }
 .persistent-error.compact { max-width: 620px; margin: 18px 0 0; }
+.review-history-list { list-style: none; padding: 0; margin: 0 0 24px; }
+.review-history-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 0; border-bottom: 1px solid #dfe3e8; }
+.preview-review-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 32px; border-bottom: 1px solid #dfe3e8; }
+.publish-review-control { display: grid; gap: 12px; }
 .recording-consent { display: grid; grid-template-columns: auto 1fr; gap: 13px; align-items: start; margin-top: 28px; cursor: pointer; }
 .recording-consent input { width: 19px; height: 19px; margin-top: 2px; accent-color: var(--blue); }
 .recording-consent strong, .recording-consent small { display: block; }

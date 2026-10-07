@@ -214,7 +214,7 @@ export function ProfileEditor({ workspace }: { workspace: FounderWorkspace }) {
     <main className="editor-page">
       <section className="editor-topbar">
         <div><p className="editor-context">Founder profile · Draft version {version || "new"}</p><h1>Make the case in your own words.</h1><p>Save a private draft at any time. Investors only see a reviewed revision after it is published.</p></div>
-        <div className="editor-top-actions"><span className={dirty ? "save-state dirty" : "save-state"}>{dirty ? "● Unsaved changes" : <><Check size={13} /> {draftConfirmed ? "Draft saved" : "All changes saved"}</>}</span><Link className="button button-light" href="/founder/profile/preview"><Eye size={16} /> Preview</Link></div>
+        <div className="editor-top-actions"><span className={dirty ? "save-state dirty" : "save-state"}>{dirty ? "● Unsaved changes" : <><Check size={13} /> {draftConfirmed ? "Draft saved" : "All changes saved"}</>}</span><Link className="button button-light" href="/founder/reviews">Reviews</Link><Link className="button button-light" href="/founder/profile/preview"><Eye size={16} /> Preview</Link></div>
       </section>
 
       {workspace.loadError ? <div className="persistent-error editor-system-state" role="alert"><CircleAlert size={18} /><div><strong>The saved draft could not be loaded.</strong><p>Reload this page before entering information. If your draft still does not load, try again later.</p></div></div> : null}

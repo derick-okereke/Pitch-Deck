@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash } from "node:crypto";
+import { founderContentHash } from "@/lib/profile-content";
 import { revalidatePath } from "next/cache";
 import type { Json } from "@/lib/supabase/database.types";
 import { getCurrentAccount } from "@/lib/account";
@@ -88,6 +88,7 @@ export async function saveFounderProfile(formData: FormData): Promise<ProfileAct
   revalidatePath("/founder");
   revalidatePath("/founder/profile/edit");
   revalidatePath("/founder/profile/preview");
+  revalidatePath("/founder/reviews");
 
   if (intent === "save") {
     return {
@@ -98,7 +99,7 @@ export async function saveFounderProfile(formData: FormData): Promise<ProfileAct
     };
   }
 
-  const contentHash = createHash("sha256").update(JSON.stringify(draftResult.data)).digest("hex");
+  const contentHash = founderContentHash(draftResult.data);
   const { data: reviewData, error: reviewError } = await admin.rpc("begin_profile_review", {
     p_founder_id: account.id,
     p_startup_id: saved.startup_id,
@@ -155,6 +156,7 @@ export async function saveFounderProfile(formData: FormData): Promise<ProfileAct
     if (completionError) throw completionError;
     revalidatePath("/founder");
     revalidatePath("/founder/profile/preview");
+    revalidatePath("/founder/reviews");
     revalidatePath(`/founder/reviews/${review.review_id}`);
     return {
       status: "review_ready",

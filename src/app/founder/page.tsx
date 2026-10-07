@@ -4,6 +4,7 @@ import { ArrowRight, AudioLines, Check, Clock3, FilePenLine, LockKeyhole, UserRo
 import { getCurrentAccount } from "@/lib/account";
 import { getFounderBillingOverview } from "@/lib/billing";
 import { getFounderWorkspace } from "@/lib/founder-profile";
+import { getCurrentFounderReview } from "@/lib/founder-review-data";
 import { getPublishedReadiness } from "@/lib/readiness-data";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,8 +17,11 @@ export default async function FounderDashboard() {
   if (!account) redirect("/auth/sign-in");
   const firstName = account.displayName.split(/\s+/)[0] || account.displayName;
   const [billing, workspace] = await Promise.all([getFounderBillingOverview(account.id), getFounderWorkspace()]);
-  let readinessScore: number | null = null;
-  if (workspace.startupId && workspace.publishedRevisionId) {
+  const currentReview = await getCurrentFounderReview(workspace);
+  let readinessScore: number | null = currentReview && ["passed", "needs_improvement"].includes(currentReview.state) ? currentReview.content_points : null;
+  let publishedScore = false;
+  if (readinessScore !== null) readinessScore = Math.floor(readinessScore + 0.5);
+  if (workspace.startupId && workspace.publishedRevisionId && workspace.publicationStatus === "published") {
     const supabase = await createClient();
     const { data: review } = await supabase.from("profile_reviews")
       .select("content_points, state")
@@ -27,6 +31,7 @@ export default async function FounderDashboard() {
     if (review?.state === "passed" && review.content_points !== null) {
       const readiness = await getPublishedReadiness({ founderId: account.id, startupId: workspace.startupId, revisionId: workspace.publishedRevisionId, contentPoints: review.content_points });
       readinessScore = readiness.displayReadiness;
+      publishedScore = workspace.publicationStatus === "published";
     }
   }
 
@@ -37,17 +42,17 @@ export default async function FounderDashboard() {
           <h1>Welcome, {firstName}.</h1>
           <p>Your private founder workspace{account.organizationName ? ` for ${account.organizationName}` : ""} is ready.</p>
         </div>
-        <Link className="button button-light" href="/founder/profile/edit"><FilePenLine size={16} /> Start founder profile</Link>
+        <Link className="button button-light" href="/founder/reviews">View reviews</Link><Link className="button button-light" href="/founder/profile/edit"><FilePenLine size={16} /> {workspace.startupId ? "Edit founder profile" : "Start founder profile"}</Link>
       </section>
 
       <section className="next-action-panel">
         <div>
-          <h2>Turn the idea into an investor-ready case.</h2>
-          <p>Start with the problem, solution, team, and funding ask. Your profile remains private until it clears review and you choose to publish it.</p>
+          <h2>{publishedScore ? "Your profile is published in discovery." : currentReview?.state === "passed" ? "Your profile passed review." : "Turn the idea into an investor-ready case."}</h2>
+          <p>{publishedScore ? "Review your published case or improve your private draft for the next revision." : currentReview?.state === "passed" ? "Open your review to see the evidence and publish this revision when you are ready." : "Start with the problem, solution, team, and funding ask. Your profile remains private until it clears review and you choose to publish it."}</p>
         </div>
         <div className="next-action-cta">
-          <Link className="button button-light" href="/founder/profile/edit">Build the profile <ArrowRight size={16} /></Link>
-          <span><LockKeyhole size={14} /> Private by default</span>
+          <Link className="button button-light" href={currentReview ? `/founder/reviews/${currentReview.id}` : "/founder/profile/edit"}>{currentReview ? "View review" : "Build the profile"} <ArrowRight size={16} /></Link>
+          <span><LockKeyhole size={14} /> {publishedScore ? "Draft edits stay private" : "Private until published"}</span>
         </div>
       </section>
 
@@ -55,13 +60,13 @@ export default async function FounderDashboard() {
         <article className="dashboard-score-card">
           <div className="card-heading">
             <div><p className="eyebrow">Readiness score</p><h2>{readinessScore ?? "—"}<span>/100</span></h2></div>
-            <span className="status-tag">{readinessScore === null ? <Clock3 size={13} /> : <Check size={13} />}{readinessScore === null ? "Not reviewed" : "Published"}</span>
+            <span className="status-tag">{readinessScore === null ? <Clock3 size={13} /> : <Check size={13} />}{readinessScore === null ? "Not reviewed" : publishedScore ? "Published" : currentReview?.state === "passed" ? "Passed · private" : "Needs improvement"}</span>
           </div>
           <div className="score-cap">
             <div><i style={{ width: `${readinessScore ?? 0}%` }} /></div>
-            <p>{readinessScore === null ? <><strong>No score yet.</strong> Submit a complete founder profile to receive category-by-category evidence and a publication decision.</> : <><strong>Your published readiness.</strong> Content contributes up to 90 points; qualifying Pro delivery contributes up to 10.</>}</p>
+            <p>{readinessScore === null ? <><strong>No current score.</strong> Submit this content for review, or open your previous reviews.</> : publishedScore ? <><strong>Your published readiness.</strong> Content contributes up to 90 points; qualifying Pro delivery contributes up to 10.</> : <><strong>Your reviewed content.</strong> Your profile remains private until you choose to publish a passed revision.</>}</p>
           </div>
-          <Link className="inline-link" href="/founder/profile/edit">Complete the evidence <ArrowRight size={15} /></Link>
+          <Link className="inline-link" href={currentReview ? `/founder/reviews/${currentReview.id}` : "/founder/reviews"}>{currentReview ? "View review and publication options" : "View review history"} <ArrowRight size={15} /></Link>
         </article>
 
         <article className="dashboard-status-card">

@@ -5,6 +5,9 @@ import { z } from "zod";
 import { profileCategoryWeights, type ProfileCategoryKey } from "@/lib/profile-review";
 import { getPublishedReadiness } from "@/lib/readiness-data";
 import { createClient } from "@/lib/supabase/server";
+import { founderContentHash } from "@/lib/profile-content";
+import { founderDraftSchema } from "@/lib/profile";
+import { PublishReviewControl } from "../publish-review-control";
 
 const storedRatingSchema = z.array(z.object({
   key: z.enum(["clarity", "market", "traction", "team", "business_model", "competition"]),
@@ -54,9 +57,9 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
   if (!review) notFound();
   if (review.state === "reviewing" || review.state === "review_failed") return <ReviewState state={review.state} reviewId={review.id} />;
 
-  const { data: revision } = await supabase.from("profile_revisions").select("id, startup_id, revision_number, draft_version, created_at").eq("id", review.revision_id).maybeSingle();
+  const { data: revision } = await supabase.from("profile_revisions").select("id, startup_id, revision_number, draft_version, content_hash, created_at").eq("id", review.revision_id).maybeSingle();
   if (!revision) notFound();
-  const { data: startup } = await supabase.from("startups").select("founder_id, draft_version, published_revision_id").eq("id", revision.startup_id).maybeSingle();
+  const { data: startup } = await supabase.from("startups").select("founder_id, draft_payload, draft_version, published_revision_id, publication_status").eq("id", revision.startup_id).maybeSingle();
   if (!startup) notFound();
 
   const ratingsResult = storedRatingSchema.safeParse(review.ratings);
@@ -68,8 +71,9 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
 
   const evidence = new Map(evidenceResult.data.map((item) => [item.key, item.evidence]));
   const passed = review.state === "passed";
-  const published = startup.published_revision_id === revision.id;
-  const reviewedEarlierDraft = startup.draft_version !== revision.draft_version;
+  const published = startup.publication_status === "published" && startup.published_revision_id === revision.id;
+  const currentDraft = founderDraftSchema.safeParse(startup.draft_payload);
+  const reviewedEarlierDraft = !currentDraft.success || founderContentHash(currentDraft.data) !== revision.content_hash;
   const readiness = published
     ? await getPublishedReadiness({ founderId: startup.founder_id, startupId: revision.startup_id, revisionId: revision.id, contentPoints: review.content_points })
     : null;
@@ -81,6 +85,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
     <main className="review-page">
       <section className="review-summary">
         <Link className="back-link" href="/founder"><ArrowLeft size={15} /> Founder overview</Link>
+        <Link className="back-link" href="/founder/reviews">All reviews</Link>
         <div className="review-summary-grid"><div><p className="review-context">Profile review · Revision {revision.revision_number}</p><span className={`status-tag ${published ? "status-published" : "status-reviewed"}`}>{passed ? <Check size={13} /> : <CircleAlert size={13} />}{published ? "Passed and published" : passed ? "Passed" : "Needs improvement"}</span><h1>{headline}</h1><p>{reviewedEarlierDraft ? "This result belongs to an earlier draft. Your current draft remains separate and was not overwritten." : "Every category below cites only evidence from the submitted revision. The model did not set the total or publication threshold."}</p></div><div className="review-score"><strong>{displayScore}</strong><span>readiness points / 100</span><small>{review.content_points}/90 content · {readiness?.deliveryContribution ?? 0}/10 delivery · Publish at 50 content</small></div></div>
       </section>
       <section className="review-layout">
@@ -94,6 +99,7 @@ export default async function ReviewPage({ params }: { params: Promise<{ id: str
           })}
         </div>
         <aside className="review-sidebar">
+          {passed && !published ? <div><h3>Ready to publish</h3>{reviewedEarlierDraft ? <p>This publishes the reviewed revision, which differs from your current draft.</p> : null}<PublishReviewControl reviewId={review.id} /></div> : published ? <div><h3>Published in discovery</h3><Link className="button button-light" href="/founder/profile/preview?revision=published">View published profile</Link></div> : null}
           <div><p className="review-context">Priority improvements</p>{flagsResult.data.length ? <ol>{flagsResult.data.map((flag, index) => <li key={`${flag.field}-${flag.code}`}><span>{String(index + 1).padStart(2, "0")}</span><div><strong>{flag.field.replaceAll("_", " ")}</strong><p>{flag.message}</p></div></li>)}</ol> : <p className="review-no-flags">No additional flags were returned. Use each category’s next step to strengthen the next revision.</p>}<Link className="button button-dark" href="/founder/profile/edit"><FilePenLine size={16} /> Improve the draft</Link></div>
           <div className="score-rule-card"><ShieldCheck size={19} /><h3>How publication works</h3><p>The exact score is {review.content_points}. Profiles pass at 50 or above. Display rounding never changes that decision.</p></div>
           <div className="score-rule-card"><CircleAlert size={19} /><h3>What this does not verify</h3><p>The review checks pitch readiness. It does not verify business claims, predict returns, or guarantee investor interest.</p></div>

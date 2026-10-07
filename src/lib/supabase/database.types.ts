@@ -403,6 +403,10 @@ export type Database = {
         };
         Returns: Array<{ published: boolean; reviewed_earlier_draft: boolean }>;
       };
+      publish_founder_review: {
+        Args: { p_founder_id: string; p_review_id: string };
+        Returns: Array<{ startup_id: string; revision_id: string }>;
+      };
       fail_profile_review: {
         Args: { p_review_id: string; p_error_code: string };
         Returns: undefined;

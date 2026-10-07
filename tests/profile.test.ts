@@ -10,6 +10,7 @@ import {
 } from "../src/lib/profile.ts";
 import { profileReviewFailureCode, validateAndScoreProfileReview } from "../src/lib/profile-review.ts";
 import { createProfileReviewRequest } from "../src/lib/profile-review-request.ts";
+import { founderContentHash } from "../src/lib/profile-content.ts";
 
 const completeProfile = {
   ...defaultFounderDraft,
@@ -27,6 +28,14 @@ const completeProfile = {
   business_model: "Retailers pay a monthly workflow subscription and suppliers pay no listing fee.",
   competition: "Retailers currently compare WhatsApp messages, market visits, and individual distributor lists.",
 };
+
+test("an unchanged saved draft retains its review identity; edited content does not", () => {
+  const original = founderDraftSchema.parse(completeProfile);
+  const savedAgain = founderDraftSchema.parse(JSON.parse(JSON.stringify(original)));
+  assert.equal(founderContentHash(savedAgain), founderContentHash(original));
+  const edited = founderDraftSchema.parse({ ...original, tagline: "A new purchasing workflow for retailers." });
+  assert.notEqual(founderContentHash(edited), founderContentHash(original));
+});
 
 function validReview() {
   const categories = [
