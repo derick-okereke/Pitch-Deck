@@ -6,7 +6,7 @@ export default async function ReviewHistoryPage() {
   const reviews = await getFounderReviewHistory(await getFounderWorkspace());
   const labels = { passed: "Passed", needs_improvement: "Needs improvement", reviewing: "Reviewing", review_failed: "Interrupted" };
   return <main className="review-page">
-    <section className="review-summary review-summary-state"><Link className="back-link" href="/founder">Founder overview</Link><h1>Your profile reviews</h1><p>Open a completed review to see its score and evidence, or publish a revision that passed.</p></section>
+    <section className="review-summary review-history-summary"><Link className="back-link" href="/founder">Founder overview</Link><div className="review-summary-grid"><div><h1>Your profile reviews</h1><p>Open a completed review to see its score and evidence, or publish a revision that passed.</p></div></div></section>
     <section className="review-empty-state"><div>
       {reviews.length ? <ul className="review-history-list">{reviews.map((review) => <li key={review.id}>
         <div><strong>Revision {review.revisionNumber} · {labels[review.state]}</strong><p>{review.content_points !== null ? `${review.content_points}/90 content points` : "No completed score"}{review.matchesDraft ? " · Matches your saved draft" : " · Earlier content"}{review.published ? " · Published" : " · Private"}</p></div>
