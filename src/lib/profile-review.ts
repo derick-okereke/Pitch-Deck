@@ -42,6 +42,8 @@ export type ProfileReviewOutput = z.infer<typeof profileReviewOutputSchema>;
 
 export function profileReviewFailureCode(error: unknown) {
   if (!(error instanceof Error)) return "unknown";
+  const provider = error as Error & { code?: string; error?: { code?: string; error?: { code?: string } } };
+  if ((provider.error?.error?.code ?? provider.error?.code ?? provider.code) === "json_validate_failed") return "provider_schema_rejected";
   if (error.name === "ZodError") return "schema_validation_failed";
   if (error instanceof SyntaxError) return "invalid_json";
   if (error.message === "The review did not contain exactly one rating for each category.") return "duplicate_categories";

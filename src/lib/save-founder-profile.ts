@@ -168,7 +168,10 @@ export async function saveFounderProfile(formData: FormData): Promise<ProfileAct
   } catch (error) {
     console.error("Profile review failed", { reviewId: review.review_id, ...reviewFailureDiagnostic(error) });
     try {
-      await admin.rpc("fail_profile_review", { p_review_id: review.review_id, p_error_code: "PROVIDER_UNAVAILABLE" });
+      await admin.rpc("fail_profile_review", {
+        p_review_id: review.review_id,
+        p_error_code: profileReviewFailureCode(error) === "provider_schema_rejected" ? "PROVIDER_SCHEMA_REJECTED" : "PROVIDER_UNAVAILABLE",
+      });
     } catch {
       // The user-facing result stays truthful even if failure persistence is unavailable.
     }

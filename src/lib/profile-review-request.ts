@@ -79,7 +79,7 @@ export function createProfileReviewRequest(profile: FounderDraft) {
       delete category.$schema;
       const categoryProperties = category.properties as Record<string, unknown>;
       categoryProperties.evidence_id = choices[key].length
-        ? { type: "string", enum: choices[key].map((choice) => choice.id) }
+        ? { type: ["string", "null"], enum: [...choices[key].map((choice) => choice.id), null] }
         : { type: "null" };
       if (!choices[key].length) categoryProperties.rating = { type: "integer", enum: [0] };
       return [key, category];

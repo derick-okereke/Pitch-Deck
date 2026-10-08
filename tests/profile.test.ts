@@ -12,6 +12,38 @@ import { profileReviewFailureCode, validateAndScoreProfileReview } from "../src/
 import { createProfileReviewRequest } from "../src/lib/profile-review-request.ts";
 import { founderContentHash } from "../src/lib/profile-content.ts";
 
+test("provider schema permits zero-rated traction without evidence despite numeric placeholders", () => {
+  const profile = { ...completeProfile, traction: { ...completeProfile.traction, interview_count: 0, pilot_count: 0, active_user_count: 0 } };
+  const request = createProfileReviewRequest(profile);
+  assert.equal(request.input.evidence_choices.traction.length, 3);
+  const response = {
+    schema_version: "1",
+    categories: Object.fromEntries(Object.entries(request.input.evidence_choices).map(([key, choices]) => [key, {
+      rating: key === "traction" || !choices.length ? 0 : 2,
+      rationale: "The submitted material leaves important assumptions untested and contains no measured validation for this category.",
+      evidence_id: key === "traction" ? null : choices[0]?.id ?? null,
+      next_step: "Add dated results from the next customer validation pilot.",
+    }])),
+    flags: [],
+  };
+  // The rejected live response passed runtime validation but its null ID was
+  // forbidden by the schema sent to Groq. Both contracts must agree.
+  const schema = request.schema as { properties: { categories: { properties: Record<string, { properties: { evidence_id: unknown } }> } } };
+  assert.deepEqual(schema.properties.categories.properties.traction.properties.evidence_id, {
+    type: ["string", "null"], enum: [...request.input.evidence_choices.traction.map(choice => choice.id), null],
+  });
+  assert.equal(request.validate(response).categories.find(category => category.key === "traction")?.rating, 0);
+  response.categories.traction.rating = 1;
+  assert.throws(() => request.validate(response), /no supporting evidence/);
+  response.categories.traction.evidence_id = "unknown_id" as never;
+  assert.throws(() => request.validate(response), /unknown evidence ID/);
+});
+
+test("classifies Groq schema rejection separately from provider unavailability", () => {
+  const error = Object.assign(new Error("Provider rejected output"), { status: 400, error: { error: { code: "json_validate_failed" } } });
+  assert.equal(profileReviewFailureCode(error), "provider_schema_rejected");
+});
+
 const completeProfile = {
   ...defaultFounderDraft,
   name: "Clear Market",
