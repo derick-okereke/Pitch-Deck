@@ -2,8 +2,10 @@ import { z } from "zod";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { getVerifiedUser } from "@/lib/auth";
 import { generateQuestions, transcribe } from "@/lib/providers/groq";
-import { jsonSafe, recordingExtension, transcriptionMetrics, validateRecording } from "@/lib/simulator-recording";
+import { jsonSafe, transcriptionMetrics } from "@/lib/simulator-recording";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+import { storedRecording } from "@/lib/stored-recording";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -16,23 +18,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const admin = createAdminClient();
   let processingStarted = false;
   try {
-    const form = await request.formData();
-    const { file, mimeType, durationMs } = validateRecording(form.get("file"), form.get("duration_ms"), "pitch");
-    const stateVersion = z.coerce.number().int().positive().parse(form.get("state_version"));
+    const { mimeType, durationMs, byteSize, stateVersion, storagePath, audioUrl } = await storedRecording(request, user.id, id, "pitch");
     const { data: session } = await admin.from("simulator_sessions").select("id, founder_id, snapshot_revision_id").eq("id", id).maybeSingle();
     if (!session || session.founder_id !== user.id) return apiError("SESSION_NOT_FOUND", "The session was not found.", 404);
-    const storagePath = `${user.id}/${id}/pitch.${recordingExtension(mimeType)}`;
     const { error: beginError } = await admin.rpc("begin_simulator_segment", {
       p_founder_id: user.id, p_session_id: id, p_expected_version: stateVersion, p_segment_kind: "pitch", p_question_index: null,
-      p_storage_path: storagePath, p_mime_type: mimeType, p_byte_size: file.size, p_duration_ms: durationMs,
+      p_storage_path: storagePath, p_mime_type: mimeType, p_byte_size: byteSize, p_duration_ms: durationMs,
     });
     if (beginError) return apiError("SESSION_STATE_CONFLICT", "This session changed in another tab. Reload to recover it.", 409, true);
     processingStarted = true;
-    const { error: uploadError } = await admin.storage.from("pitch-audio").upload(storagePath, file, { contentType: mimeType, upsert: true });
-    if (uploadError) throw new Error("AUDIO_UPLOAD_FAILED");
-
     const [transcriptResult, personasResult, revisionResult] = await Promise.all([
-      transcribe(file),
+      transcribe(audioUrl),
       admin.from("simulator_personas").select("persona_key, name, title, focus").eq("session_id", id).order("persona_key"),
       admin.from("profile_revisions").select("payload").eq("id", session.snapshot_revision_id).single(),
     ]);

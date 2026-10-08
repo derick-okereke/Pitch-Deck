@@ -32,9 +32,9 @@ function client() {
   return new Groq({ apiKey });
 }
 
-export async function transcribe(file: File) {
+export async function transcribe(audioUrl: string) {
   const result = await client().audio.transcriptions.create({
-    file,
+    url: audioUrl,
     model: process.env.GROQ_STT_MODEL || "whisper-large-v3-turbo",
     language: "en",
     temperature: 0,

@@ -9,6 +9,7 @@ import { useAudioCapture } from "@/hooks/use-audio-capture";
 import type { SimulatorPersona, SimulatorQuestion } from "@/lib/simulator";
 import { captureProductEvent } from "@/lib/telemetry/posthog-client";
 import { captureBrowserFailure } from "@/lib/telemetry/watchup-browser";
+import { uploadSimulatorRecording, recoverSimulatorVersion } from "@/lib/upload-simulator-recording";
 import { SimulatorBoardroom } from "./simulator-boardroom";
 
 type DurableState = "ready" | "pitch_processing" | "question_ready" | "answer_processing" | "ready_for_feedback" | "feedback_generating" | "retryable_error" | "completed";
@@ -162,7 +163,8 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
     } catch (error) {
       captureBrowserFailure("simulator_step", "FEEDBACK_CLIENT_FAILURE");
       setProviderError(error instanceof Error ? error.message : "Feedback could not be generated.");
-      setStateVersion((value) => value + 2);
+      const recoveredVersion = await recoverSimulatorVersion(sessionId);
+      if (recoveredVersion !== null) setStateVersion(recoveredVersion);
       setPhase("feedback-error");
       setAnnouncement("Feedback paused. Your recordings and transcripts are safe.");
     }
@@ -176,12 +178,11 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
     setProviderError(null);
     setPhase("pitch-processing");
     setAnnouncement("Pitch saved locally. Uploading, transcribing, and preparing two questions.");
-    const form = new FormData();
-    form.append("file", blob, `pitch.${blob.type.includes("mp4") ? "m4a" : "webm"}`);
-    form.append("duration_ms", String(durationMs));
-    form.append("state_version", String(stateVersion));
     try {
-      const result = await jsonRequest<{ stateVersion: number; questions: SimulatorQuestion[] }>(`/api/v1/simulations/${sessionId}/pitch`, { method: "POST", body: form });
+      const uploadTicket = await uploadSimulatorRecording(sessionId, blob, { kind: "pitch", durationMs, stateVersion, questionIndex: null });
+      const result = await jsonRequest<{ stateVersion: number; questions: SimulatorQuestion[] }>(`/api/v1/simulations/${sessionId}/pitch`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ uploadTicket }),
+      });
       setQuestions(result.questions);
       captureProductEvent("session_step_completed", { step: "pitch" });
       setStateVersion(result.stateVersion);
@@ -192,7 +193,8 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
     } catch (error) {
       captureBrowserFailure("simulator_step", "PITCH_CLIENT_FAILURE");
       setProviderError(error instanceof Error ? error.message : "The pitch could not be processed.");
-      setStateVersion((value) => value + 2);
+      const recoveredVersion = await recoverSimulatorVersion(sessionId);
+      if (recoveredVersion !== null) setStateVersion(recoveredVersion);
       setPhase("ready");
       setAnnouncement("Pitch processing paused. Record again or reload to recover the saved session.");
     }
@@ -206,13 +208,11 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
     setProviderError(null);
     setPhase("answer-processing");
     setAnnouncement(`Answer ${currentQuestion.question_index} saved locally. Uploading and transcribing.`);
-    const form = new FormData();
-    form.append("file", blob, `answer-${currentQuestion.question_index}.${blob.type.includes("mp4") ? "m4a" : "webm"}`);
-    form.append("duration_ms", String(durationMs));
-    form.append("state_version", String(stateVersion));
-    form.append("question_index", String(currentQuestion.question_index));
     try {
-      const result = await jsonRequest<{ stateVersion: number; answeredQuestionCount: number; state: DurableState }>(`/api/v1/simulations/${sessionId}/answers`, { method: "POST", body: form });
+      const uploadTicket = await uploadSimulatorRecording(sessionId, blob, { kind: "answer", durationMs, stateVersion, questionIndex: currentQuestion.question_index });
+      const result = await jsonRequest<{ stateVersion: number; answeredQuestionCount: number; state: DurableState }>(`/api/v1/simulations/${sessionId}/answers`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ uploadTicket }),
+      });
       setStateVersion(result.stateVersion);
       setAnsweredCount(result.answeredQuestionCount);
       captureProductEvent("session_step_completed", { step: "answer" });
@@ -227,7 +227,8 @@ export function SimulatorSessionLive({ answeredQuestionCount: initialAnsweredCou
     } catch (error) {
       captureBrowserFailure("simulator_step", "ANSWER_CLIENT_FAILURE");
       setProviderError(error instanceof Error ? error.message : "The answer could not be processed.");
-      setStateVersion((value) => value + 2);
+      const recoveredVersion = await recoverSimulatorVersion(sessionId);
+      if (recoveredVersion !== null) setStateVersion(recoveredVersion);
       setPhase("question");
       setAnnouncement("Answer processing paused. Your session is recoverable.");
     }

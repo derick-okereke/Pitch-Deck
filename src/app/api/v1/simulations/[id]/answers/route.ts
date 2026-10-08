@@ -2,8 +2,10 @@ import { z } from "zod";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { getVerifiedUser } from "@/lib/auth";
 import { transcribe } from "@/lib/providers/groq";
-import { jsonSafe, recordingExtension, transcriptionMetrics, validateRecording } from "@/lib/simulator-recording";
+import { jsonSafe, transcriptionMetrics } from "@/lib/simulator-recording";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+import { storedRecording } from "@/lib/stored-recording";
 
 export const runtime = "nodejs";
 export const maxDuration = 90;
@@ -16,26 +18,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const admin = createAdminClient();
   let processingStarted = false;
   try {
-    const form = await request.formData();
-    const { file, mimeType, durationMs } = validateRecording(form.get("file"), form.get("duration_ms"), "answer");
-    const stateVersion = z.coerce.number().int().positive().parse(form.get("state_version"));
-    const questionIndex = z.coerce.number().int().min(1).max(2).parse(form.get("question_index"));
+    const { mimeType, durationMs, byteSize, stateVersion, storagePath, audioUrl, questionIndex } = await storedRecording(request, user.id, id, "answer");
     const { data: session } = await admin.from("simulator_sessions").select("id, founder_id").eq("id", id).maybeSingle();
     if (!session || session.founder_id !== user.id) return apiError("SESSION_NOT_FOUND", "The session was not found.", 404);
-    const storagePath = `${user.id}/${id}/answer-${questionIndex}.${recordingExtension(mimeType)}`;
     const { error: beginError } = await admin.rpc("begin_simulator_segment", {
-      p_founder_id: user.id, p_session_id: id, p_expected_version: stateVersion, p_segment_kind: "answer", p_question_index: questionIndex,
-      p_storage_path: storagePath, p_mime_type: mimeType, p_byte_size: file.size, p_duration_ms: durationMs,
+      p_founder_id: user.id, p_session_id: id, p_expected_version: stateVersion, p_segment_kind: "answer", p_question_index: questionIndex!,
+      p_storage_path: storagePath, p_mime_type: mimeType, p_byte_size: byteSize, p_duration_ms: durationMs,
     });
     if (beginError) return apiError("SESSION_STATE_CONFLICT", "This session changed in another tab. Reload to recover it.", 409, true);
     processingStarted = true;
-    const { error: uploadError } = await admin.storage.from("pitch-audio").upload(storagePath, file, { contentType: mimeType, upsert: true });
-    if (uploadError) throw new Error("AUDIO_UPLOAD_FAILED");
-    const transcriptResult = await transcribe(file);
+    const transcriptResult = await transcribe(audioUrl);
     const metrics = transcriptionMetrics(transcriptResult.text, durationMs);
     if (metrics.wordCount < 3) throw new Error("EMPTY_TRANSCRIPT");
     const { data, error: completeError } = await admin.rpc("complete_simulator_answer", {
-      p_session_id: id, p_question_index: questionIndex, p_transcript: transcriptResult.text,
+      p_session_id: id, p_question_index: questionIndex!, p_transcript: transcriptResult.text,
       p_words: jsonSafe(transcriptResult.words), p_segments: jsonSafe(transcriptResult.segments), p_word_count: metrics.wordCount,
       p_wpm: metrics.wordsPerMinute, p_filler_matches: metrics.fillerMatches, p_filler_token_count: metrics.fillerTokenCount, p_filler_percent: metrics.fillerPercent,
     });
