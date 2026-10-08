@@ -5,6 +5,7 @@ import { z } from "zod";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { IntroRequestPanel } from "@/components/intro-request-panel";
+import { StartupProfileEvidence } from "@/components/startup-profile-evidence";
 import { startups } from "@/data/startups";
 import { getIntroState } from "@/lib/conversation-data";
 import { getInvestorAccess, getStartupDetail } from "@/lib/marketplace-data";
@@ -63,6 +64,7 @@ export default async function StartupPage({ params }: { params: Promise<{ slug: 
   const categoryScores: Array<[string, number, number]> = ratings
     ? ratings.map((rating) => [labels[rating.key], profileCategoryWeights[rating.key] * rating.rating / 4, profileCategoryWeights[rating.key]])
     : fixtureScores;
+  const deliveryPoints = fixture?.deliveryPoints ?? stored?.deliveryPoints ?? 0;
 
   return (
     <div className="page-canvas"><div className="page-shell">
@@ -86,12 +88,12 @@ export default async function StartupPage({ params }: { params: Promise<{ slug: 
       <main className="detail-layout">
         <div className="detail-main">
           <section className="detail-section"><p className="section-number">THE CASE</p><h2>The problem</h2><p>{problem}</p><h2>The solution</h2><p>{solution}</p></section>
-          <section className="detail-section"><p className="section-number">EVIDENCE</p><h2>Traction and proof</h2><p>{traction}</p>{profile?.team.length ? <><h2>Team</h2><div className="detail-team">{profile.team.map((member) => <article key={`${member.name}-${member.role}`}><strong>{member.name}</strong><span>{member.role}</span><p>{member.relevant_experience}</p></article>)}</div></> : null}<div className="evidence-note"><Info size={18} /><p><strong>{fixture || stored?.isDemo ? "Demo data is labelled." : "Claims are self-reported."}</strong> The profile passed a pitch-readiness review. Peekytoe has not independently verified business performance or investment outcomes.</p></div></section>
+          {profile ? <StartupProfileEvidence profile={profile} isDemo={stored!.isDemo} /> : <section className="detail-section"><p className="section-number">EVIDENCE</p><h2>Traction and proof</h2><p>{traction}</p><div className="evidence-note"><Info size={18} /><p><strong>Demo data is labelled.</strong> The profile passed a pitch-readiness review. Peekytoe has not independently verified business performance or investment outcomes.</p></div></section>}
           <section className="detail-section">
             <p className="section-number">READINESS BREAKDOWN</p>
             <div className="score-breakdown">
               {categoryScores.map(([label, value, max]) => <div className="score-row" key={label}><span>{label}</span><div><i style={{ width: `${Number(value) / Number(max) * 100}%` }} /></div><strong>{value} / {max}</strong></div>)}
-              <div className="score-row"><span>Delivery</span><div><i style={{ width: `${(fixture?.deliveryPoints ?? 0) * 10}%` }} /></div><strong>{fixture?.deliveryPoints ?? 0} / 10</strong></div>
+              <div className="score-row"><span>Delivery</span><div><i style={{ width: `${deliveryPoints * 10}%` }} /></div><strong>{deliveryPoints} / 10</strong></div>
             </div>
             <p className="score-explainer"><ShieldCheck size={18} />The score measures pitch readiness against the published rubric. It does not predict returns, certify the founder, or verify every business claim.</p>
           </section>

@@ -87,7 +87,7 @@ async function publishedRows() {
       revisionId: row.revision.id,
       contentPoints: Number(row.review.content_points),
     });
-    return { ...row, card: cardFrom(row.profile, row.startup, readiness.exactReadiness, readiness.badgeEarned) };
+    return { ...row, readiness, card: cardFrom(row.profile, row.startup, readiness.exactReadiness, readiness.badgeEarned) };
   }));
 }
 
@@ -144,5 +144,6 @@ export async function getStartupDetail(id: string) {
     profile: match.profile,
     reviewedAt: match.review.completed_at ?? match.revision.created_at,
     ratings: match.review.ratings,
+    deliveryPoints: match.readiness.deliveryContribution,
   } };
 }
