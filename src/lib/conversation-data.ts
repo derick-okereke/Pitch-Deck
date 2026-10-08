@@ -175,6 +175,40 @@ export async function getConversationDetail(conversationId: string): Promise<Con
 }
 
 export async function getUnreadConversationCount() {
-  const conversations = await getConversationList();
-  return conversations.reduce((total, conversation) => total + conversation.unreadCount, 0);
+  const account = await getConversationAccount();
+  if (!account) return 0;
+  const admin = createAdminClient();
+  const pageSize = 50;
+  let total = 0;
+
+  // Count incoming messages across every conversation, not only the inbox's first page.
+  for (let offset = 0; ; offset += pageSize) {
+    const { data: conversations, error } = await admin.from("conversations")
+      .select("id, next_sequence")
+      .eq(account.role === "founder" ? "founder_id" : "investor_id", account.id)
+      .order("id")
+      .range(offset, offset + pageSize - 1);
+    if (error) throw new Error("UNREAD_COUNT_UNAVAILABLE");
+    if (!conversations?.length) break;
+    const { data: reads, error: readError } = await admin.from("conversation_reads")
+      .select("conversation_id, last_read_sequence")
+      .eq("user_id", account.id)
+      .in("conversation_id", conversations.map(({ id }) => id));
+    if (readError) throw new Error("UNREAD_COUNT_UNAVAILABLE");
+    const readMap = new Map((reads ?? []).map((read) => [read.conversation_id, Number(read.last_read_sequence)]));
+    const filters = conversations.flatMap(({ id, next_sequence }) => {
+      const lastRead = readMap.get(id) ?? 0;
+      return next_sequence - 1 > lastRead ? [`and(conversation_id.eq.${id},sequence.gt.${lastRead})`] : [];
+    });
+    if (filters.length) {
+      const { count, error: countError } = await admin.from("messages")
+        .select("id", { count: "exact", head: true })
+        .neq("sender_id", account.id)
+        .or(filters.join(","));
+      if (countError || count === null) throw new Error("UNREAD_COUNT_UNAVAILABLE");
+      total += count;
+    }
+    if (conversations.length < pageSize) break;
+  }
+  return total;
 }

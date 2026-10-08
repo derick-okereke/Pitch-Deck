@@ -1,7 +1,10 @@
 .accountMenu { position: relative; }
 .accountMenu summary { list-style: none; cursor: pointer; }
 .accountMenu summary::-webkit-details-marker { display: none; }
-.accountMenu[open] summary svg { transform: rotate(180deg); }
+.accountMenu .accountTrigger { width: 44px; height: 44px; display: grid; place-items: center; color: white; background: var(--navy); border-radius: 50%; font-size: 13px; font-weight: 750; }
+.notificationLink { position: relative; width: 44px; height: 44px; display: grid; place-items: center; color: var(--navy); border: 0; background: transparent; }
+.notificationLink:focus-visible { outline: 2px solid var(--navy); outline-offset: 3px; border-radius: 50%; }
+.unreadBadge { position: absolute; top: 0; right: 0; min-width: 17px; padding: 0 3px; color: var(--amber); background: var(--surface); border-radius: 8px; font-size: 13px; line-height: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
 .menuPanel { position: absolute; z-index: 30; top: calc(100% + 10px); right: 0; width: 240px; padding: 18px; color: #151922; background: white; border: 1px solid #d9dee7; box-shadow: 0 14px 36px rgba(17, 24, 39, .12); }
 .menuPanel strong, .menuPanel span, .menuPanel small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .menuPanel strong { font-size: 15px; }
