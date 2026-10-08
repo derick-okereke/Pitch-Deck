@@ -16,6 +16,22 @@ export function safeAuthNext(value: FormDataEntryValue | string | null | undefin
   return value;
 }
 
+export function authEntryRole(role?: FormDataEntryValue | string | null, next?: string | null): AccountRole | null {
+  if (role === "founder" || role === "investor") return role;
+  if (next === "/discover" || next === "/investor/profile") return "investor";
+  if (next === "/simulator/new" || next?.startsWith("/founder")) return "founder";
+  return null;
+}
+
+export function canReuseAuthSession(accountRole: AccountRole | null, entryRole: AccountRole | null) {
+  return !entryRole || accountRole === entryRole;
+}
+
+export function founderEntryHref(account: { role: AccountRole | null; organizationName: string | null } | null) {
+  if (account?.role === "founder") return account.organizationName ? "/simulator/new" : "/onboarding";
+  return "/auth/sign-up?role=founder&next=/simulator/new";
+}
+
 export function postAuthDestination(
   account: { role: AccountRole | null; organizationName: string | null },
   requested?: string | null,

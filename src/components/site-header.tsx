@@ -6,7 +6,8 @@ import { useState } from "react";
 import { signOut } from "@/app/auth/actions";
 import { BrandMark } from "@/components/brand-mark";
 
-export function SiteHeader({ investorHref = "/discover", workspaceHref, workspaceLabel = "Open workspace", investorWorkspace = false, activeInvestorPage }: {
+export function SiteHeader({ founderHref = "/#for-founders", investorHref = "/discover", workspaceHref, workspaceLabel = "Open workspace", investorWorkspace = false, activeInvestorPage }: {
+  founderHref?: string;
   investorHref?: string;
   workspaceHref?: string | null;
   workspaceLabel?: string;
@@ -27,7 +28,7 @@ export function SiteHeader({ investorHref = "/discover", workspaceHref, workspac
         <nav className="desktop-nav" aria-label="Primary navigation">
           {investorWorkspace ? investorLinks.map(({ href, label, page }) => <Link key={href} href={href} aria-current={activeInvestorPage === page ? "page" : undefined}>{label}</Link>) : <>
             <Link href="/#how-it-works">How it works</Link>
-            <Link href="/#for-founders">For founders</Link>
+            <Link href={founderHref}>For founders</Link>
             <Link href={investorHref}>For investors</Link>
             {workspaceHref ? <Link href="/inbox">Inbox</Link> : null}
           </>}
@@ -53,7 +54,7 @@ export function SiteHeader({ investorHref = "/discover", workspaceHref, workspac
         <nav className="mobile-nav" id="mobile-menu" aria-label="Mobile navigation">
           {investorWorkspace ? investorLinks.map(({ href, label, page }) => <Link key={href} onClick={() => setOpen(false)} href={href} aria-current={activeInvestorPage === page ? "page" : undefined}>{label}</Link>) : <>
             <Link onClick={() => setOpen(false)} href="/#how-it-works">How it works</Link>
-            <Link onClick={() => setOpen(false)} href="/#for-founders">For founders</Link>
+            <Link onClick={() => setOpen(false)} href={founderHref}>For founders</Link>
             <Link onClick={() => setOpen(false)} href={investorHref}>For investors</Link>
             {workspaceHref ? <Link onClick={() => setOpen(false)} href="/inbox">Inbox</Link> : null}
           </>}

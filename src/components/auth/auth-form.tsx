@@ -74,7 +74,7 @@ function PasswordField({
 export function SignUpForm({ defaultRole, next }: { defaultRole: "founder" | "investor"; next?: string | null }) {
   const [state, action, pending] = useActionState(signUp, initialState);
   const formRef = useRef<HTMLFormElement>(null);
-  const { recoveredAt } = useFormRecovery({ formRef, storageKey: "pitch-deck:auth:sign-up" });
+  const { recoveredAt } = useFormRecovery({ formRef, storageKey: `pitch-deck:auth:sign-up:${defaultRole}` });
   return <form className="auth-form" action={action} noValidate ref={formRef}>
     {next ? <input type="hidden" name="next" value={next} /> : null}
     <fieldset className="auth-role-choice" onChange={(event) => { const target = event.target; if (!(target instanceof HTMLInputElement)) return; const role = target.value; if (role === "founder" || role === "investor") captureProductEvent("role_selected", { role }); }}><legend>I am joining as</legend><label><input type="radio" name="role" value="founder" defaultChecked={defaultRole === "founder"} /><span>Founder<small>Build and practise your pitch.</small></span></label><label><input type="radio" name="role" value="investor" defaultChecked={defaultRole === "investor"} /><span>Investor<small>Discover and contact founders.</small></span></label></fieldset>
@@ -83,22 +83,23 @@ export function SignUpForm({ defaultRole, next }: { defaultRole: "founder" | "in
     <PasswordField label="Password" autoComplete="new-password" errors={state.fieldErrors?.password} showRequirements mentionPasswordManagers />
     {recoveredAt ? <small className="form-recovery-note" role="status">Name, email, and role recovered from this browser. Your password was not stored.</small> : null}
     <Message state={state} /><SubmitButton pending={pending}>Create account</SubmitButton>
-    <p className="auth-switch">Already have an account? <Link href={next ? `/auth/sign-in?${defaultRole === "investor" ? "role=investor&" : ""}next=${encodeURIComponent(next)}` : "/auth/sign-in"}>Sign in</Link></p>
+    <p className="auth-switch">Already have an account? <Link href={`/auth/sign-in?role=${defaultRole}${next ? `&next=${encodeURIComponent(next)}` : ""}`}>Sign in</Link></p>
   </form>;
 }
 
-export function SignInForm({ next, role }: { next?: string | null; role?: "investor" }) {
+export function SignInForm({ next, role }: { next?: string | null; role?: "founder" | "investor" }) {
   const [state, action, pending] = useActionState(signIn, initialState);
   const formRef = useRef<HTMLFormElement>(null);
   const { recoveredAt } = useFormRecovery({ formRef, storageKey: "pitch-deck:auth:sign-in" });
   return <form className="auth-form" action={action} noValidate ref={formRef}>
     {next ? <input type="hidden" name="next" value={next} /> : null}
+    {role ? <input type="hidden" name="role" value={role} /> : null}
     <label><span>Email</span><input name="email" type="email" autoComplete="email" maxLength={254} required /><ErrorText errors={state.fieldErrors?.email} /></label>
     <PasswordField label="Password" autoComplete="current-password" errors={state.fieldErrors?.password} />
     <Link className="auth-forgot" href="/auth/forgot-password">Forgot your password?</Link>
     {recoveredAt ? <small className="form-recovery-note" role="status">Your email was recovered. Passwords are never stored.</small> : null}
     <Message state={state} /><SubmitButton pending={pending}>Sign in</SubmitButton>
-    <p className="auth-switch">New to Peekytoe? <Link href={next ? `/auth/sign-up?role=${role ?? "founder"}&next=${encodeURIComponent(next)}` : "/auth/sign-up"}>Create an account</Link></p>
+    <p className="auth-switch">New to Peekytoe? <Link href={role || next ? `/auth/sign-up?role=${role ?? "founder"}${next ? `&next=${encodeURIComponent(next)}` : ""}` : "/auth/sign-up"}>Create an account</Link></p>
   </form>;
 }
 

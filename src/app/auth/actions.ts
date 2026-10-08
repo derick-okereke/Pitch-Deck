@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { accountHome } from "@/lib/account";
 import { accountPasswordSchema } from "@/lib/auth-validation";
-import { postAuthDestination, safeAuthNext } from "@/lib/auth-redirect";
+import { authEntryRole, postAuthDestination, safeAuthNext } from "@/lib/auth-redirect";
 import { authEmailRedirectOrigin } from "@/lib/site-url";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -84,8 +84,11 @@ export async function signIn(_state: AuthFormState, formData: FormData): Promise
     .eq("id", data.user.id)
     .maybeSingle();
   if (!account) return { message: "Your account workspace is still being prepared. Try again shortly." };
-  if ((next === "/discover" || next === "/investor/profile") && account.role !== "investor") return {
-    message: "This account is for founders. To browse startups, use an investor account.",
+  const entryRole = authEntryRole(formData.get("role"), next);
+  if (entryRole && account.role !== entryRole) return {
+    message: entryRole === "founder"
+      ? "This account is for investors. To practise your pitch, use a founder account."
+      : "This account is for founders. To browse startups, use an investor account.",
   };
   redirect(postAuthDestination({ role: account.role, organizationName: account.organization_name }, next));
 }

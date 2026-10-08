@@ -8,15 +8,14 @@ import { SiteHeader } from "@/components/site-header";
 import { StartupCard } from "@/components/startup-card";
 import { startups } from "@/data/startups";
 import { accountHome, getCurrentAccount } from "@/lib/account";
+import { founderEntryHref } from "@/lib/auth-redirect";
 
 export default async function Home() {
   const account = await getCurrentAccount();
   const workspaceHref = account
     ? account.organizationName ? accountHome(account) : "/onboarding"
     : null;
-  const practiceHref = account
-    ? account.role === "founder" && account.organizationName ? "/simulator/new" : workspaceHref ?? "/onboarding"
-    : "/auth/sign-in?next=/simulator/new";
+  const practiceHref = founderEntryHref(account);
   const investorHref = account
     ? account.role === "investor" ? account.organizationName ? "/discover" : "/onboarding" : "/auth/sign-in?role=investor&next=/discover"
     : "/auth/sign-in?role=investor&next=/discover";
@@ -26,7 +25,7 @@ export default async function Home() {
     <div className="page-canvas home-page">
       <div className="page-shell">
         <section className="hero-panel">
-          <SiteHeader investorHref={investorHref} workspaceHref={workspaceHref} workspaceLabel={workspaceLabel} />
+          <SiteHeader founderHref={practiceHref} investorHref={investorHref} workspaceHref={workspaceHref} workspaceLabel={workspaceLabel} />
           <div className="hero-grid">
             <div className="hero-copy">
               <h1>Pitch smarter and get discovered by the right investors</h1>
