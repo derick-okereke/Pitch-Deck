@@ -34,6 +34,7 @@ export function InboxShell({ account, conversations, detail, loadError }: {
 }) {
   const router = useRouter();
   const historyRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [messages, setMessages] = useState<LocalMessage[]>(detail?.messages ?? []);
   const [draft, setDraft] = useState("");
   const [draftRestored, setDraftRestored] = useState(false);
@@ -45,6 +46,19 @@ export function InboxShell({ account, conversations, detail, loadError }: {
   const [blocking, setBlocking] = useState(false);
   const storageKey = detail ? `pitch-deck:message-draft:${detail.id}` : "";
   const highestSequence = useMemo(() => Math.max(0, ...messages.filter((message) => !message.status).map((message) => message.sequence)), [messages]);
+  const unreadCount = conversations.reduce((total, conversation) => total + conversation.unreadCount, 0);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const resize = () => {
+      textarea.style.height = "0px";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 160)}px`;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, [draft, blocked]);
 
   useEffect(() => {
     if (!storageKey) return;
@@ -175,7 +189,7 @@ export function InboxShell({ account, conversations, detail, loadError }: {
     </section>
     <main className={`${styles.workspace} ${detail ? styles.hasDetail : ""}`}>
       <section className={styles.index} aria-label="Conversations">
-        <div className={styles.indexHeader}><div><h2>Inbox</h2><span>{conversations.reduce((total, conversation) => total + conversation.unreadCount, 0)} unread</span></div>{loadError ? <button type="button" onClick={() => router.refresh()}><RefreshCw size={15} /> Retry</button> : null}</div>
+        <div className={styles.indexHeader}><div className={styles.indexTitle}><MessageSquareText size={22} aria-hidden="true" /><h2>Inbox</h2></div><span className={`${styles.unreadSummary} ${unreadCount > 0 ? styles.hasUnread : ""}`}>{unreadCount} unread</span>{loadError ? <button type="button" onClick={() => router.refresh()}><RefreshCw size={15} /> Retry</button> : null}</div>
         {loadError ? <div className={styles.listState}><CircleAlert size={22} /><h3>Your inbox could not load.</h3><p>Nothing was changed. Check the connection and try again.</p></div> : conversations.length ? <div className={styles.conversationList}>{conversations.map((conversation) => <Link aria-current={detail?.id === conversation.id ? "page" : undefined} className={styles.conversationLink} href={`/inbox/${conversation.id}`} key={conversation.id}><span className={styles.avatar} aria-hidden="true">{conversation.counterpartName.slice(0, 1).toUpperCase()}</span><span className={styles.conversationCopy}><span><strong>{conversation.counterpartName}</strong><time>{when(conversation.lastMessageAt)}</time></span><small>{conversation.startupName}{conversation.listed ? "" : " · No longer listed"}</small><p>{conversation.lastMessage}</p></span>{conversation.unreadCount > 0 ? <b aria-label={`${conversation.unreadCount} unread messages`}>{conversation.unreadCount}</b> : null}</Link>)}</div> : <div className={styles.listState}><MessageSquareText size={24} /><h3>No conversations yet.</h3><p>{account.role === "investor" ? "Open a published startup to request an introduction." : "When an investor requests an introduction, it will appear here. You can always reply for free."}</p><Link className="button button-light" href={account.role === "investor" ? "/discover" : "/founder"}>{account.role === "investor" ? "Browse startups" : "Return to dashboard"}</Link></div>}
       </section>
       {detail ? <section className={styles.thread} aria-label={`Conversation with ${detail.counterpart.name}`}>
@@ -195,7 +209,7 @@ export function InboxShell({ account, conversations, detail, loadError }: {
         </div>
         <form className={styles.composer} onSubmit={submit}>
           <div className={styles.connection} aria-live="polite">{connection === "live" ? <><span /> Connected</> : connection === "offline" ? <><WifiOff size={13} /> Offline · your draft is safe</> : <><LoaderCircle className={styles.spinner} size={13} /> Reconnecting…</>}</div>
-          {blocked ? <div className={styles.blockedNotice}><Ban size={16} /><span><strong>This conversation is blocked.</strong>{blockedByMe ? "Unblock it from the header to send another message." : "Messages cannot be sent in this conversation."}</span></div> : <><label><span className="sr-only">Message</span><textarea value={draft} onChange={(event) => { setDraft(event.target.value); setFeedback(""); }} maxLength={2_000} rows={3} placeholder={detail.currentRole === "founder" ? "Reply to this investor — free on every plan" : "Write a private message"} /></label><div className={styles.composerFooter}><span>{draft.length} / 2,000 · Plain text</span><button className="button button-dark" disabled={!draft.trim()} type="submit"><Send size={15} /> Send message</button></div></>}
+          {blocked ? <div className={styles.blockedNotice}><Ban size={16} /><span><strong>This conversation is blocked.</strong>{blockedByMe ? "Unblock it from the header to send another message." : "Messages cannot be sent in this conversation."}</span></div> : <div className={styles.composeBox}><label><span className="sr-only">Message</span><textarea ref={textareaRef} value={draft} onChange={(event) => { setDraft(event.target.value); setFeedback(""); }} maxLength={2_000} rows={2} placeholder={detail.currentRole === "founder" ? "Reply to this investor — free on every plan" : "Write a private message"} /></label><div className={styles.composerFooter}><span>{draft.length} / 2,000</span><button className={styles.sendButton} aria-label="Send message" disabled={!draft.trim()} type="submit"><Send size={17} /> Send</button></div></div>}
           {feedback ? <p className={styles.feedback} role="alert"><CircleAlert size={15} />{feedback}</p> : <p className={styles.draftNote}>Unsent text stays on this device.</p>}
         </form>
       </section> : <section className={styles.threadEmpty}><MessageSquareText size={28} /><h2>Select a conversation.</h2><p>The full introduction and startup context will stay together here.</p></section>}
