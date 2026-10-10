@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
-      <body>{children}{process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST ? <TelemetryConsent /> : null}</body>
+      <body>{children}{process.env.WATCHUP_API_KEY || (process.env.NEXT_PUBLIC_POSTHOG_KEY && process.env.NEXT_PUBLIC_POSTHOG_HOST) ? <TelemetryConsent watchupEnabled={Boolean(process.env.WATCHUP_API_KEY)} /> : null}</body>
     </html>
   );
 }

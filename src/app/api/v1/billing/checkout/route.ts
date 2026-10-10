@@ -2,11 +2,11 @@ import { apiError, apiSuccess } from "@/lib/api-response";
 import { getCurrentAccount } from "@/lib/account";
 import { BachsError } from "@/lib/bachs";
 import { beginFounderProCheckout } from "@/lib/billing";
-import { captureServerFailure } from "@/lib/telemetry/watchup-server";
+import { captureServerFailure, withWatchupRequest } from "@/lib/telemetry/watchup-server";
 
 export const runtime = "nodejs";
 
-export async function POST() {
+async function handlePOST() {
   const account = await getCurrentAccount();
   if (!account) return apiError("AUTH_REQUIRED", "Sign in to continue.", 401);
   try {
@@ -22,3 +22,5 @@ export async function POST() {
     return apiError("CHECKOUT_FAILED", "The sandbox checkout could not be started.", 500, true);
   }
 }
+
+export const POST = withWatchupRequest("/api/v1/billing/checkout", "POST", handlePOST);

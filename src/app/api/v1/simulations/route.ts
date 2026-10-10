@@ -1,3 +1,4 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { Json } from "@/lib/supabase/database.types";
@@ -26,7 +27,7 @@ function mappedError(message: string | undefined) {
   return apiError("SESSION_START_FAILED", "The practice session could not start. Try again without closing this page.", 503, true);
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   const account = await getCurrentAccount();
   if (!account || account.role !== "founder") return apiError("FOUNDER_REQUIRED", "Sign in with a founder account to practise.", 403);
 
@@ -94,3 +95,5 @@ export async function POST(request: Request) {
     return apiError("PROVIDER_UNAVAILABLE", "Practice is temporarily unavailable. No free session was used.", 503, true);
   }
 }
+
+export const POST = withWatchupRequest("/api/v1/simulations", "POST", handlePOST);

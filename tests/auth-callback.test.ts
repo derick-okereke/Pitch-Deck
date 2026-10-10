@@ -5,6 +5,7 @@ import test from "node:test";
 import ts from "typescript";
 import * as redirects from "../src/lib/auth-redirect.ts";
 import { authEmailRedirectOrigin } from "../src/lib/site-url.ts";
+import { observeWatchupHandler } from "../src/lib/telemetry/watchup-handler.ts";
 
 const require = createRequire(import.meta.url);
 // Execute the actual route with a fake auth provider, without issuing emails or
@@ -26,6 +27,9 @@ function callback({ valid = true, organizationName = null as string | null, erro
   };
   const exports: { GET?: (request: Request) => Promise<Response> } = {};
   new Function("require", "exports", compiled)((name: string) => {
+    if (name === "@/lib/telemetry/watchup-server") return {
+      withWatchupRequest: (_route: string, _method: string, handler: (request: Request) => Promise<Response>) => observeWatchupHandler(handler, () => () => {}),
+    };
     if (name === "@/lib/auth-redirect") return redirects;
     if (name === "@/lib/site-url") return { authEmailRedirectOrigin: () => authEmailRedirectOrigin({}) };
     if (name === "@/lib/supabase/server") return { createClient: async () => client };

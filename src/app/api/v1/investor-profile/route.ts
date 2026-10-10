@@ -1,10 +1,11 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { getCurrentAccount } from "@/lib/account";
 import { flattenInvestorErrors, investorProfileSchema } from "@/lib/investor-profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET() {
+async function handleGET() {
   const account = await getCurrentAccount();
   if (!account) return apiError("AUTH_REQUIRED", "Sign in to open your investor profile.", 401);
   if (account.role !== "investor") return apiError("INVESTOR_REQUIRED", "This profile is available to investor accounts.", 403);
@@ -15,7 +16,7 @@ export async function GET() {
   return apiSuccess(data);
 }
 
-export async function PUT(request: Request) {
+async function handlePUT(request: Request) {
   const account = await getCurrentAccount();
   if (!account) return apiError("AUTH_REQUIRED", "Sign in to save your investor profile.", 401);
   if (account.role !== "investor") return apiError("INVESTOR_REQUIRED", "Only investor accounts can save this profile.", 403);
@@ -38,3 +39,6 @@ export async function PUT(request: Request) {
   if (error) return apiError("PROFILE_SAVE_FAILED", "Your profile was not saved. Your browser copy is still available; try again.", 503, true);
   return apiSuccess({ saved_at: data.updated_at });
 }
+
+export const GET = withWatchupRequest("/api/v1/investor-profile", "GET", handleGET);
+export const PUT = withWatchupRequest("/api/v1/investor-profile", "PUT", handlePUT);

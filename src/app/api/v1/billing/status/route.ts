@@ -1,3 +1,4 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { getCurrentAccount } from "@/lib/account";
 import { getFounderBillingOverview } from "@/lib/billing";
@@ -8,7 +9,7 @@ import { reconcilePaidCheckout } from "@/lib/billing";
 
 export const runtime = "nodejs";
 
-export async function GET(request: Request) {
+async function handleGET(request: Request) {
   const account = await getCurrentAccount();
   if (!account) return apiError("AUTH_REQUIRED", "Sign in to continue.", 401);
   if (account.role !== "founder") return apiError("FOUNDER_REQUIRED", "Founder billing is unavailable for this account.", 403);
@@ -42,3 +43,5 @@ export async function GET(request: Request) {
   }
   return apiSuccess(await getFounderBillingOverview(account.id));
 }
+
+export const GET = withWatchupRequest("/api/v1/billing/status", "GET", handleGET);

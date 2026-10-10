@@ -1,3 +1,4 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { z } from "zod";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { conversationMutationError } from "@/lib/conversation-api";
@@ -14,10 +15,13 @@ async function setBlock(id: string, blocked: boolean) {
   return apiSuccess({ blocked: Boolean(data), blocked_by_me: blocked });
 }
 
-export async function POST(_request: Request, context: { params: Promise<{ id: string }> }) {
+async function handlePOST(_request: Request, context: { params: Promise<{ id: string }> }) {
   return setBlock((await context.params).id, true);
 }
 
-export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
+async function handleDELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
   return setBlock((await context.params).id, false);
 }
+
+export const POST = withWatchupRequest("/api/v1/conversations/[id]/block", "POST", handlePOST);
+export const DELETE = withWatchupRequest("/api/v1/conversations/[id]/block", "DELETE", handleDELETE);

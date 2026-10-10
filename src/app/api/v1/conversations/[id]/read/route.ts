@@ -1,3 +1,4 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { z } from "zod";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { conversationMutationError } from "@/lib/conversation-api";
@@ -5,7 +6,7 @@ import { firstFieldErrors, readRequestSchema } from "@/lib/conversation";
 import { getConversationAccount } from "@/lib/conversation-data";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function PUT(request: Request, context: { params: Promise<{ id: string }> }) {
+async function handlePUT(request: Request, context: { params: Promise<{ id: string }> }) {
   const account = await getConversationAccount();
   if (!account) return apiError("AUTH_REQUIRED", "Sign in to update this conversation.", 401);
   const { id } = await context.params;
@@ -23,3 +24,5 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
   if (error) return conversationMutationError(error.message);
   return apiSuccess({ last_read_sequence: Number(data) });
 }
+
+export const PUT = withWatchupRequest("/api/v1/conversations/[id]/read", "PUT", handlePUT);

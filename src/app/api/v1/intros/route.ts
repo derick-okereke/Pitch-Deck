@@ -1,10 +1,11 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { conversationMutationError } from "@/lib/conversation-api";
 import { firstFieldErrors, introRequestSchema } from "@/lib/conversation";
 import { getConversationAccount } from "@/lib/conversation-data";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   const account = await getConversationAccount();
   if (!account) return apiError("AUTH_REQUIRED", "Sign in to request an introduction.", 401);
   if (account.role !== "investor") return apiError("INVESTOR_REQUIRED", "Only investors can request introductions.", 403);
@@ -24,3 +25,5 @@ export async function POST(request: Request) {
   if (error || !data?.[0]) return conversationMutationError(error?.message);
   return apiSuccess({ conversation_id: data[0].conversation_id, created: data[0].created }, data[0].created ? 201 : 200);
 }
+
+export const POST = withWatchupRequest("/api/v1/intros", "POST", handlePOST);

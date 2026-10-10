@@ -38,7 +38,7 @@ Use **PostHog** rather than building click/heatmap tracking from scratch. Free t
 
 - **PostHog** → how people use the interface (clicks, funnels, drop-off, session replay)
 - **Supabase event tables** → what happened in the business (scores, searches, intros) — needs to be relational so it can be joined against the app's own schema
-- **WatchUp** *(compulsory tool, see `01-stack.md`)* → errors/system health only, not user behavior — a third, separate concern
+- **WatchUp** *(compulsory tool, see `01-stack.md`)* → request performance, structured logs, scrubbed errors, and owner-requested consented page/product analytics. See [current observability setup](docs/phase5-observability.md); expanded on October 10, 2026.
 
 ## Scaling plan for later — design for it now, don't build it now
 

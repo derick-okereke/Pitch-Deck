@@ -1,3 +1,4 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { z } from "zod";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { conversationMutationError } from "@/lib/conversation-api";
@@ -7,7 +8,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 const idSchema = z.string().uuid();
 
-export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
+async function handleGET(_request: Request, context: { params: Promise<{ id: string }> }) {
   const account = await getConversationAccount();
   if (!account) return apiError("AUTH_REQUIRED", "Sign in to open this conversation.", 401);
   const { id } = await context.params;
@@ -23,7 +24,7 @@ export async function GET(_request: Request, context: { params: Promise<{ id: st
   });
 }
 
-export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
+async function handlePOST(request: Request, context: { params: Promise<{ id: string }> }) {
   const account = await getConversationAccount();
   if (!account) return apiError("AUTH_REQUIRED", "Sign in to send a message.", 401);
   const { id } = await context.params;
@@ -51,3 +52,6 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     reused: message.reused,
   }, message.reused ? 200 : 201);
 }
+
+export const GET = withWatchupRequest("/api/v1/conversations/[id]/messages", "GET", handleGET);
+export const POST = withWatchupRequest("/api/v1/conversations/[id]/messages", "POST", handlePOST);

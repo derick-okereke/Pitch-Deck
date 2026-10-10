@@ -1,3 +1,4 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { z } from "zod";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { getCurrentAccount } from "@/lib/account";
@@ -5,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 const inputSchema = z.object({ state_version: z.number().int().positive() }).strict();
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function handlePOST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const account = await getCurrentAccount();
   if (!account || account.role !== "founder") return apiError("FOUNDER_REQUIRED", "Sign in with a founder account.", 403);
   const { id } = await params;
@@ -22,3 +23,5 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (error) return apiError("INVALID_SESSION_STATE", "The session changed. Reload before cancelling it.", 409);
   return apiSuccess({ state: "cancelled", state_version: data });
 }
+
+export const POST = withWatchupRequest("/api/v1/simulations/[id]/cancel", "POST", handlePOST);

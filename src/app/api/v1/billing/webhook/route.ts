@@ -2,7 +2,7 @@ import { sha256, verifyBachsSignature } from "@/lib/billing-core";
 import { BachsError, getBachsConfig } from "@/lib/bachs";
 import { reconcilePaidCheckout, reconcileSubscription } from "@/lib/billing";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { captureServerFailure } from "@/lib/telemetry/watchup-server";
+import { captureServerFailure, withWatchupRequest } from "@/lib/telemetry/watchup-server";
 
 export const runtime = "nodejs";
 
@@ -16,7 +16,7 @@ function firstString(source: Record<string, unknown> | null, keys: string[]) {
   return null;
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   let config;
   try { config = getBachsConfig(); } catch { return new Response("Webhook unavailable", { status: 503 }); }
   const rawBody = await request.text();
@@ -76,3 +76,5 @@ export async function POST(request: Request) {
     return new Response(providerError.retryable ? "Retry later" : "Event quarantined", { status: providerError.retryable ? 500 : 200 });
   }
 }
+
+export const POST = withWatchupRequest("/api/v1/billing/webhook", "POST", handlePOST);

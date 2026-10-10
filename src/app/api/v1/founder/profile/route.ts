@@ -1,6 +1,6 @@
 import type { ProfileActionState } from "@/lib/profile-action-state";
 import { saveFounderProfile } from "@/lib/save-founder-profile";
-import { captureServerFailure } from "@/lib/telemetry/watchup-server";
+import { captureServerFailure, withWatchupRequest } from "@/lib/telemetry/watchup-server";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -24,7 +24,7 @@ function failureDiagnostic(error: unknown) {
   };
 }
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   const requestId = crypto.randomUUID().slice(0, 8).toUpperCase();
   try {
     const formData = await request.formData();
@@ -44,3 +44,5 @@ export async function POST(request: Request) {
     } satisfies ProfileActionState, { status: 503 });
   }
 }
+
+export const POST = withWatchupRequest("/api/v1/founder/profile", "POST", handlePOST);

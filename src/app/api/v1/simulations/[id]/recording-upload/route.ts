@@ -1,3 +1,4 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { apiError, apiSuccess } from "@/lib/api-response";
@@ -8,7 +9,7 @@ import { recordingExtension } from "@/lib/simulator-recording";
 
 export const runtime = "nodejs";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function handleGET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getVerifiedUser();
   if (!user) return apiError("AUTH_REQUIRED", "Sign in to recover your session.", 401);
   const { id } = await params;
@@ -17,7 +18,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   return data ? apiSuccess({ stateVersion: data.state_version }) : apiError("SESSION_NOT_FOUND", "The session was not found.", 404);
 }
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function handlePOST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getVerifiedUser();
   if (!user) return apiError("AUTH_REQUIRED", "Sign in to upload a recording.", 401);
   const { id } = await params;
@@ -46,3 +47,6 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return apiError("MEDIA_INVALID", "Use a supported recording within the size and duration limits.", 422, true);
   }
 }
+
+export const GET = withWatchupRequest("/api/v1/simulations/[id]/recording-upload", "GET", handleGET);
+export const POST = withWatchupRequest("/api/v1/simulations/[id]/recording-upload", "POST", handlePOST);

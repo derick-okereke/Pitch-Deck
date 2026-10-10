@@ -1,3 +1,4 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { z } from "zod";
 import { apiError } from "@/lib/api-response";
 import { getVerifiedUser } from "@/lib/auth";
@@ -11,7 +12,7 @@ const inputSchema = z.object({
   voiceStyle: z.enum(["warm-rigorous", "direct-analytical", "calm-strategic"]),
 }).strict();
 
-export async function POST(request: Request) {
+async function handlePOST(request: Request) {
   if (!await getVerifiedUser()) return apiError("AUTH_REQUIRED", "Sign in to play the generated voice.", 401);
   try {
     const input = inputSchema.safeParse(await request.json());
@@ -23,3 +24,5 @@ export async function POST(request: Request) {
     return apiError("PROVIDER_UNAVAILABLE", "Voice playback is temporarily unavailable. Continue with the written question.", 503, true);
   }
 }
+
+export const POST = withWatchupRequest("/api/v1/simulator/speech", "POST", handlePOST);

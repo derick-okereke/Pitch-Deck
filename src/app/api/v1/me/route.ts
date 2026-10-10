@@ -1,9 +1,10 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { accountHome, getCurrentAccount } from "@/lib/account";
 import { createClient } from "@/lib/supabase/server";
 import { getFounderBillingOverview } from "@/lib/billing";
 
-export async function GET() {
+async function handleGET() {
   const account = await getCurrentAccount();
   if (!account) return apiError("AUTH_REQUIRED", "Sign in to open your workspace.", 401);
 
@@ -32,3 +33,5 @@ export async function GET() {
     unread_count: 0,
   });
 }
+
+export const GET = withWatchupRequest("/api/v1/me", "GET", handleGET);

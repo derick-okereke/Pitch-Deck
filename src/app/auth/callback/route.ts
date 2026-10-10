@@ -1,10 +1,11 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { postAuthDestination, safeAuthNext } from "@/lib/auth-redirect";
 import { authEmailRedirectOrigin } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 
-export async function GET(request: Request) {
+async function handleGET(request: Request) {
   const url = new URL(request.url);
   // request.url can contain the hosting proxy's internal localhost origin.
   const publicOrigin = authEmailRedirectOrigin();
@@ -45,3 +46,5 @@ export async function GET(request: Request) {
   }
   return NextResponse.redirect(new URL("/auth/auth-code-error", publicOrigin));
 }
+
+export const GET = withWatchupRequest("/auth/callback", "GET", handleGET);

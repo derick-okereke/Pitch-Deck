@@ -1,3 +1,4 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { z } from "zod";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { getVerifiedUser } from "@/lib/auth";
@@ -8,7 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export const runtime = "nodejs";
 export const maxDuration = 120;
 
-export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function handlePOST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getVerifiedUser();
   if (!user) return apiError("AUTH_REQUIRED", "Sign in to generate feedback.", 401);
   const { id } = await params;
@@ -51,3 +52,5 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return apiError("PROVIDER_UNAVAILABLE", "Your recordings and transcripts are safe, but feedback could not finish. Retry from this session.", 503, true);
   }
 }
+
+export const POST = withWatchupRequest("/api/v1/simulations/[id]/feedback", "POST", handlePOST);

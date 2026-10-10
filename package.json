@@ -14,7 +14,7 @@
     "test:phase3": "node --test --experimental-strip-types tests/elevenlabs-speech.test.ts tests/device-tier.test.ts tests/transcript-metrics.test.ts tests/simulator.test.ts tests/recording-upload-ticket.test.ts",
     "test:phase4": "node --test --experimental-strip-types tests/readiness.test.ts tests/investor-profile.test.ts tests/conversation.test.ts",
     "test:phase4:integration": "node tests/phase4-database.integration.mjs",
-    "test:phase5": "node --test --experimental-strip-types tests/billing.test.ts tests/telemetry-policy.test.ts",
+    "test:phase5": "node --test --experimental-strip-types tests/billing.test.ts tests/telemetry-policy.test.ts tests/watchup-browser.test.ts tests/watchup-relay.test.ts",
     "test:phase5:integration": "node tests/phase5-database.integration.mjs"
   },
   "dependencies": {

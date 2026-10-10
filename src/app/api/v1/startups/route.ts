@@ -1,8 +1,9 @@
+import { withWatchupRequest } from "@/lib/telemetry/watchup-server";
 import { apiError, apiSuccess } from "@/lib/api-response";
 import { discoveryFilterSchema } from "@/lib/marketplace";
 import { getDiscovery, getInvestorAccess } from "@/lib/marketplace-data";
 
-export async function GET(request: Request) {
+async function handleGET(request: Request) {
   const access = await getInvestorAccess();
   if (access.status === "anonymous") return apiError("AUTH_REQUIRED", "Sign in to use investor discovery.", 401);
   if (access.status === "onboarding" || access.status === "profile_required") return apiError("ONBOARDING_REQUIRED", "Complete your investor profile before using discovery.", 403);
@@ -29,3 +30,5 @@ export async function GET(request: Request) {
     return apiError("DISCOVERY_UNAVAILABLE", "Discovery could not be loaded. Try again.", 503, true);
   }
 }
+
+export const GET = withWatchupRequest("/api/v1/startups", "GET", handleGET);

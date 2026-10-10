@@ -2,8 +2,10 @@
 
 import posthog from "posthog-js";
 import { allowedEvents, beforeSendProductEvent, type ProductEvent } from "@/lib/telemetry/posthog-policy";
+import { captureWatchupProductEvent } from "@/lib/telemetry/watchup-browser";
+import { ANALYTICS_CONSENT_KEY } from "@/lib/telemetry/consent";
 
-export const ANALYTICS_CONSENT_KEY = "pitch-deck:analytics-consent-v1";
+export { ANALYTICS_CONSENT_KEY } from "@/lib/telemetry/consent";
 let initialized = false;
 let identifiedAccountId: string | null = null;
 
@@ -57,6 +59,7 @@ export function clearPostHogIdentity() {
 }
 
 export function captureProductEvent(event: ProductEvent, properties?: { role?: "founder" | "investor"; step?: "pitch" | "answer" | "report" }) {
+  captureWatchupProductEvent(event, properties);
   if (!initialized || !allowedEvents.has(event)) return;
   try {
     if (window.localStorage.getItem(ANALYTICS_CONSENT_KEY) !== "yes") return;
